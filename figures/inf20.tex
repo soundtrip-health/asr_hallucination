@@ -1,0 +1,45 @@
+\begin{tabular}{lllrrrr}
+\toprule
+Noise type & Metric & Transcriber & Mean Original & Mean SNR 20 & t-statistic & p-value \\
+\midrule
+Office & WER & AssemblyAI & 0.2395 & 0.2466 & -1.29 &  1.0e+00 \\
+  &   & AWS Transcribe & 0.2730 & 0.2640 & 2.84 & \textbf{ 4.5e-02} \\
+  &   & WhisperX & 0.2590 & 0.2652 & -3.48 & \textbf{ 6.2e-03} \\
+  &   & Reverb & 0.2219 & 0.2323 & -1.12 &  1.0e+00 \\
+\cmidrule(r){3-7}
+  & Insertions & AssemblyAI & 0.0143 & 0.0150 & -2.56 &  1.0e-01 \\
+  &   & AWS Transcribe & 0.0265 & 0.0151 & 12.08 & \textbf{ 5.7e-22} \\
+  &   & WhisperX & 0.0150 & 0.0147 & 0.86 &  1.0e+00 \\
+  &   & Reverb & 0.0238 & 0.0223 & 4.56 & \textbf{ 1.2e-04} \\
+\cmidrule(r){3-7}
+  & Deletions & AssemblyAI & 0.1842 & 0.1895 & -0.92 &  1.0e+00 \\
+  &   & AWS Transcribe & 0.1782 & 0.1988 & -5.52 & \textbf{ 1.9e-06} \\
+  &   & WhisperX & 0.2006 & 0.2059 & -4.15 & \textbf{ 5.6e-04} \\
+  &   & Reverb & 0.1369 & 0.1476 & -1.03 &  1.0e+00 \\
+\cmidrule(r){3-7}
+  & Substitutions & AssemblyAI & 0.0410 & 0.0420 & -1.86 &  5.3e-01 \\
+  &   & AWS Transcribe & 0.0683 & 0.0501 & 13.50 & \textbf{ 1.7e-25} \\
+  &   & WhisperX & 0.0434 & 0.0446 & -1.83 &  5.6e-01 \\
+  &   & Reverb & 0.0612 & 0.0624 & -1.38 &  1.0e+00 \\
+\cmidrule(r){2-7}
+Music & WER & AssemblyAI & 0.2395 & 0.2487 & -3.55 & \textbf{ 4.9e-03} \\
+  &   & AWS Transcribe & 0.2730 & 0.2913 & -4.91 & \textbf{ 2.7e-05} \\
+  &   & WhisperX & 0.2590 & 0.2695 & -6.01 & \textbf{ 1.9e-07} \\
+  &   & Reverb & 0.2219 & 0.2435 & -1.92 &  4.7e-01 \\
+\cmidrule(r){3-7}
+  & Insertions & AssemblyAI & 0.0143 & 0.0130 & 4.45 & \textbf{ 1.8e-04} \\
+  &   & AWS Transcribe & 0.0265 & 0.0247 & 6.62 & \textbf{ 9.5e-09} \\
+  &   & WhisperX & 0.0150 & 0.0146 & 1.42 &  1.0e+00 \\
+  &   & Reverb & 0.0238 & 0.0213 & 5.62 & \textbf{ 1.2e-06} \\
+\cmidrule(r){3-7}
+  & Deletions & AssemblyAI & 0.1842 & 0.1927 & -3.85 & \textbf{ 1.7e-03} \\
+  &   & AWS Transcribe & 0.1782 & 0.1943 & -5.97 & \textbf{ 2.2e-07} \\
+  &   & WhisperX & 0.2006 & 0.2086 & -6.64 & \textbf{ 8.4e-09} \\
+  &   & Reverb & 0.1369 & 0.1590 & -1.78 &  6.3e-01 \\
+\cmidrule(r){3-7}
+  & Substitutions & AssemblyAI & 0.0410 & 0.0430 & -3.89 & \textbf{ 1.5e-03} \\
+  &   & AWS Transcribe & 0.0683 & 0.0722 & -3.36 & \textbf{ 9.2e-03} \\
+  &   & WhisperX & 0.0434 & 0.0463 & -4.24 & \textbf{ 4.0e-04} \\
+  &   & Reverb & 0.0612 & 0.0632 & -2.26 &  2.1e-01 \\
+\bottomrule
+\end{tabular}

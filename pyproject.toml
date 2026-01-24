@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "asr-hallucination"
+version = "0.1.0"
+description = "Tools for analyzing ASR hallucinations using time-aligned transcripts"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+keywords = ["speech recognition", "ASR", "hallucination", "audio transcription", "AMI corpus"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "numpy>=1.20.0",
+    "pandas>=1.3.0",
+    "torch>=1.9.0",
+    "pydub>=0.25.0",
+    "filetype>=1.0.0",
+    "silero-vad>=4.0.0",
+    "jiwer>=2.5.0",
+    "whisper-normalizer>=0.1.0",
+    "python-dotenv>=0.19.0",
+    "joblib>=1.1.0",
+    "pyarrow>=6.0.0",
+    "plotly>=5.0.0",
+    "scipy>=1.7.0",
+    "kaleido>=0.2.0",
+]
+
+[project.optional-dependencies]
+whisperx = ["whisperx>=3.0.0"]
+aws = ["boto3>=1.20.0"]
+assemblyai = ["assemblyai>=0.17.0"]
+reverb = []  # See https://github.com/revdotcom/reverb for installation
+all = [
+    "whisperx>=3.0.0",
+    "boto3>=1.20.0",
+    "assemblyai>=0.17.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "black>=22.0.0",
+    "isort>=5.10.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/asr-hallucination"
+Repository = "https://github.com/yourusername/asr-hallucination"
+
+[project.scripts]
+asr-transcribe = "scripts.run_transcriptions:main"
+
+[tool.setuptools.packages.find]
+include = ["asr_hallucination*"]
+
+[tool.setuptools.package-data]
+asr_hallucination = ["../data/*.json", "../data/*.wav"]
