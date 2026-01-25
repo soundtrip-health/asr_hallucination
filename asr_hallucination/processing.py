@@ -23,7 +23,7 @@ from .transcription import (
 from .s3_utils import upload_file, download_file, delete_uri
 
 
-def process_session_audio(session_id, outbase, s3_session, snr=float("inf"), noisefn=None, rerun=False):
+def process_session_audio(session_id, outbase, s3_session, datadir, snr=float("inf"), noisefn=None, rerun=False):
     """
     Process a single AMI session: mix with noise, compute VAD, and transcribe with all available ASR systems.
 
@@ -34,6 +34,7 @@ def process_session_audio(session_id, outbase, s3_session, snr=float("inf"), noi
         session_id: AMI session ID
         outbase: output directory base path
         s3_session: boto3 session for AWS Transcribe
+        datadir: base directory containing AMI corpus
         snr: signal-to-noise ratio in dB
         noisefn: path to noise file
         rerun: whether to rerun if output files exist
@@ -42,7 +43,7 @@ def process_session_audio(session_id, outbase, s3_session, snr=float("inf"), noi
         tuple of (vad_df, aws_df, aai_df, wsp_df, rev_df)
     """
     logger = setup_logging()
-    audio_path = get_audiofile(session_id)
+    audio_path = get_audiofile(session_id, datadir)
     if not audio_path:
         logger.error(f"Audio file not found for {session_id=}.")
         return False
@@ -51,18 +52,23 @@ def process_session_audio(session_id, outbase, s3_session, snr=float("inf"), noi
     outpath_session.mkdir(parents=True, exist_ok=True)
 
     if snr != float("inf") and noisefn is not None:
-        noise = audio_to_numpy(load_audio([str(noisefn)], s3_session=s3_session).set_channels(1).set_frame_rate(16000))
-        noisefn = Path(noisefn).stem
-        snr_audio_path = outpath_session / f"audio_{noisefn}_snr{snr:+03.0f}.wav"
-        if snr_audio_path.is_file() and not rerun:
-            logger.info(f"File {snr_audio_path} exists and rerun is False. Using that audio file...")
+        noisefn_str = str(noisefn)
+        if noisefn_str.startswith("s3://") and s3_session is None:
+            logger.warning(f"Noise file {noisefn_str} is an S3 URI but AWS credentials are not available. Skipping noise mixing.")
+            noisefn = "none"
         else:
-            logger.info(f"Mixing in noise {snr_audio_path=}...")
-            # Assumes the files are already mono 16kHz
-            signal = audio_to_numpy(load_audio([str(audio_path)]))
-            aseg = mix_audio(signal, noise, snr)
-            aseg.export(snr_audio_path, format="wav")
-        audio_path = snr_audio_path
+            noise = audio_to_numpy(load_audio([noisefn_str], s3_session=s3_session).set_channels(1).set_frame_rate(16000))
+            noisefn = Path(noisefn).stem
+            snr_audio_path = outpath_session / f"audio_{noisefn}_snr{snr:+03.0f}.wav"
+            if snr_audio_path.is_file() and not rerun:
+                logger.info(f"File {snr_audio_path} exists and rerun is False. Using that audio file...")
+            else:
+                logger.info(f"Mixing in noise {snr_audio_path=}...")
+                # Assumes the files are already mono 16kHz
+                signal = audio_to_numpy(load_audio([str(audio_path)]))
+                aseg = mix_audio(signal, noise, snr)
+                aseg.export(snr_audio_path, format="wav")
+            audio_path = snr_audio_path
     else:
         noisefn = "none"
 
@@ -80,11 +86,16 @@ def process_session_audio(session_id, outbase, s3_session, snr=float("inf"), noi
 
     # Transcribe with AWS
     aws_path = outpath_session / f"xscript_aws_{noisefn}_snr{snr:+03.0f}.json"
+    aws_job_status = None
+    aws_tmp_audio_uri = None
+    transcribe_client = None
+    result_uri = None
     if aws_path.is_file() and not rerun:
         logger.info(f"File {aws_path} exists and rerun is False. Skipping...")
-        aws_job_status = None
         aws_df = load_transcript_words(aws_path, "aws")
-        aws_tmp_audio_uri = None
+    elif s3_session is None:
+        logger.warning("AWS credentials not available. Skipping AWS transcription.")
+        aws_df = pd.DataFrame()
     else:
         # upload temp file. The file uri must be unique to avoid bugs when multi-threaded.
         job_name = get_uuid()
@@ -111,6 +122,9 @@ def process_session_audio(session_id, outbase, s3_session, snr=float("inf"), noi
             with open(aai_path.with_stem(aai_path.stem + "_raw"), "wt") as fp:
                 json.dump(aai_result_raw, fp)
             aai_df = load_transcript_words(aai_path, "aai")
+        except (ValueError, ImportError) as e:
+            logger.warning(f"AssemblyAI transcription skipped for {session_id=}: {e}")
+            aai_df = pd.DataFrame()
         except Exception as e:
             logger.error(f"AssemblyAI transcription failed for {session_id=}: {e}")
             aai_df = pd.DataFrame()
@@ -140,7 +154,7 @@ def process_session_audio(session_id, outbase, s3_session, snr=float("inf"), noi
         rev_df = load_transcript_words(rev_path, "rev")
 
     # Check on the AWS job
-    if aws_job_status is not None:
+    if aws_job_status is not None and transcribe_client is not None and result_uri is not None:
         aws_job_status = check_aws_job_status(aws_job_status["TranscriptionJob"]["TranscriptionJobName"], transcribe_client)
         while aws_job_status["TranscriptionJob"]["TranscriptionJobStatus"] != "COMPLETED":
             time.sleep(2)
@@ -180,7 +194,7 @@ def merge_session_files(session_dir, num_snrs, noise_name):
     df.to_feather(outfn)
 
 
-def process_session(session_id, snr, outbase, s3_session, noisefn, num_snrs=None, reprocess=False):
+def process_session(session_id, snr, outbase, s3_session, noisefn, datadir, num_snrs=None, reprocess=False):
     """Process a single session at a specific SNR level.
 
     Args:
@@ -189,6 +203,7 @@ def process_session(session_id, snr, outbase, s3_session, noisefn, num_snrs=None
         outbase: output directory base path
         s3_session: boto3 session
         noisefn: Path to noise file
+        datadir: base directory containing AMI corpus
         num_snrs: total number of SNR levels (for merging)
         reprocess: whether to reprocess existing files
     """
@@ -197,8 +212,8 @@ def process_session(session_id, snr, outbase, s3_session, noisefn, num_snrs=None
     if out_file.is_file() and not reprocess:
         logger.info(f"File {out_file} exists and reprocess is False. Skipping...")
         return
-    _, aws_df, aai_df, wsp_df, rev_df = process_session_audio(session_id, outbase, s3_session, snr=snr, noisefn=noisefn)
-    hum_df = load_manual_transcript_words(session_id)
+    _, aws_df, aai_df, wsp_df, rev_df = process_session_audio(session_id, outbase, s3_session, datadir, snr=snr, noisefn=noisefn)
+    hum_df = load_manual_transcript_words(session_id, datadir)
     hum_df["snr"] = 0
     df = pd.concat((hum_df, aws_df, aai_df, wsp_df, rev_df)).reset_index(drop=True)
     df["dataset"] = "ami"
@@ -225,6 +240,9 @@ def make_noises(outpath, s3_session, source_file="s3://compass-ds-data/transcrib
         s3_session: boto3 session
         source_file: S3 URI or local path to source audio file
     """
+    logger = setup_logging()
+    if source_file.startswith("s3://") and s3_session is None:
+        raise ValueError(f"Source file {source_file} is an S3 URI but AWS credentials are not available. Please provide AWS credentials or use a local file.")
     DURATION = 75*60000  # msec
     START = 7*60000  # msec
     noise = load_audio([source_file], s3_session=s3_session).set_channels(1).set_frame_rate(16000)

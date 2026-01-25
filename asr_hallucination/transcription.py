@@ -22,6 +22,16 @@ except ImportError:
     AAI_AVAILABLE = False
 
 try:
+    import torch
+    # Monkey-patch torch.load to force weights_only=False for PyTorch 2.6+
+    # This fixes compatibility with whisperx/pyannote models that use omegaconf.ListConfig
+    # lightning_fabric explicitly passes weights_only=True, so we need to override it
+    _original_torch_load = torch.load
+    def _patched_torch_load(*args, **kwargs):
+        kwargs["weights_only"] = False
+        return _original_torch_load(*args, **kwargs)
+    torch.load = _patched_torch_load
+    
     import whisperx
     WHISPERX_AVAILABLE = True
 except ImportError:
@@ -79,32 +89,48 @@ def load_rev_model(model_path=None, gpu=-1):
     """
     Load the rev.com open-source reverb transcription model.
 
-    The model will be downloaded (if needed) and cached in model_path. If model_path is not specified,
+    The model must be pre-downloaded and available at model_path. If model_path is not specified,
     it will be set to ROOT_DIR/reverb-asr.
 
     We re-implement the reverb load_model function as it doesn't expose some useful options (like gpu).
     Unfortunately, it doesn't seem to use the gpu even if that option is set.
 
     Args:
-        model_path: path to model directory
+        model_path: path to model directory containing config.yaml and checkpoint .pt file
         gpu: GPU device ID (-1 for CPU)
 
     Returns:
         wenet.ReverbASR instance
+
+    Raises:
+        ImportError: If wenet (reverb) is not installed
+        FileNotFoundError: If the model files are not found at the specified path
     """
     if not REVERB_AVAILABLE:
-        raise ImportError("wenet (reverb) is not installed. See https://github.com/revdotcom/reverb for install instructions.")
+        raise ImportError("wenet (reverb) is not installed. See README.md for installation instructions.")
 
     logger = setup_logging()
     if model_path is None:
         model_path = ROOT_DIR / "reverb-asr"
     else:
         model_path = pathlib.Path(model_path)
+    
     if not (model_path / "config.yaml").exists():
-        # try downloading from HF
-        wenet.download_model("reverb-asr", model_path)
+        raise FileNotFoundError(
+            f"Reverb model not found at {model_path}. "
+            "Please download the model following the instructions in README.md. "
+            "The model should be downloaded from Hugging Face (Revai/reverb-asr) "
+            "and placed in the specified directory."
+        )
+    
     config_path = (model_path / "config.yaml").resolve()
-    checkpoint_path = (list(model_path.glob("*.pt"))[0]).resolve()
+    checkpoint_files = list(model_path.glob("*.pt"))
+    if not checkpoint_files:
+        raise FileNotFoundError(
+            f"No checkpoint file (.pt) found in {model_path}. "
+            "Please ensure the model has been downloaded correctly."
+        )
+    checkpoint_path = checkpoint_files[0].resolve()
     logger.info(f"Loading the model with {config_path = } and {checkpoint_path = }")
     return wenet.ReverbASR(str(config_path), str(checkpoint_path))
 
@@ -170,7 +196,11 @@ def assemblyai_transcribe_audio(
     if not AAI_AVAILABLE:
         raise ImportError("assemblyai is not installed. Install with: pip install assemblyai")
 
-    aai.settings.api_key = os.getenv("ASSEMBLYAI_API_KEY")
+    api_key = os.getenv("ASSEMBLYAI_API_KEY")
+    if not api_key:
+        raise ValueError("ASSEMBLYAI_API_KEY not found in environment variables. Please set it in your .env file or environment.")
+    
+    aai.settings.api_key = api_key
 
     config = aai.TranscriptionConfig(
         speaker_labels=True,

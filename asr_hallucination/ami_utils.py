@@ -37,7 +37,7 @@ def get_session_and_speaker(filename):
     return parts[0], parts[1]
 
 
-def get_ami_sessions(basedir="/data/transcripts/ami"):
+def get_ami_sessions(basedir):
     """Get list of session IDs from AMI corpus.
 
     Args:
@@ -96,7 +96,7 @@ def parse_ami_xml(xml_file, speaker):
     return words
 
 
-def get_audiofile(session_id, basedir="/data/transcripts/ami/amicorpus/"):
+def get_audiofile(session_id, basedir):
     """Get audio file path for an AMI session.
 
     We prefer the "Mix-Lapel" audio, but will use Mix-Headset if lapel isn't available.
@@ -186,7 +186,7 @@ def load_transcript_words(path, transcriber):
     return df
 
 
-def load_manual_transcript_words(session_id, basedir="/data/transcripts/ami"):
+def load_manual_transcript_words(session_id, basedir):
     """Load manual (human) transcript words for an AMI session.
 
     Args:
@@ -207,7 +207,7 @@ def load_manual_transcript_words(session_id, basedir="/data/transcripts/ami"):
     return df
 
 
-def load_ami_transcript(session_id, transcriber, snr, basedir=Path("/data/transcripts/ami")):
+def load_ami_transcript(session_id, transcriber, snr, basedir):
     """Load AMI transcript for a specific session, transcriber, and SNR.
 
     Args:

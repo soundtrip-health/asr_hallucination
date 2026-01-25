@@ -37,7 +37,7 @@ def main():
                     'If a transcript exists there, it will not be regenerated. Note that you need AWS '
                     'credentials to download the noise file from S3 and to run AWS transcribe. These '
                     'are expected to be in the envfile.')
-    parser.add_argument('datadir', type=str, help='Base directory containing AMI corpus data')
+    parser.add_argument('datadir', type=str, help='Base directory containing AMI corpus data (see README for details)')
     parser.add_argument('--outdir', type=str, help='Where to put the processed files. Default is datadir/out.')
     parser.add_argument('--envfile', type=str, default=DEFAULT_ENV, help=f'Env file path; default is {DEFAULT_ENV}.')
     parser.add_argument('--noisefile', type=str, default=DEFAULT_NOISEFILE, help=f'Noise file; default is {DEFAULT_NOISEFILE}.')
@@ -58,12 +58,18 @@ def main():
         logger.warning("boto3 is not installed. AWS Transcribe will not be available.")
         s3_session = None
     else:
-        region = "eu-west-2"
-        s3_session = boto3.Session(
-            os.environ.get("AWS_ACCESS_KEY_ID"),
-            os.environ.get("AWS_SECRET_ACCESS_KEY"),
-            region_name=region
-        )
+        aws_access_key = os.environ.get("AWS_ACCESS_KEY_ID")
+        aws_secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
+        if not aws_access_key or not aws_secret_key:
+            logger.warning("AWS credentials not found in environment. AWS Transcribe and S3 operations will be skipped.")
+            s3_session = None
+        else:
+            region = "eu-west-2"
+            s3_session = boto3.Session(
+                aws_access_key,
+                aws_secret_key,
+                region_name=region
+            )
 
     datadir = Path(args.datadir)
     outbase = Path(args.outdir) if args.outdir else datadir / "out"
@@ -100,7 +106,7 @@ def main():
 
     # Run parallel transcription jobs
     results = joblib.Parallel(n_jobs=args.njobs, verbose=1)(
-        joblib.delayed(process_session)(session_id, snr, outbase, s3_session, noisefn, len(snrs))
+        joblib.delayed(process_session)(session_id, snr, outbase, s3_session, noisefn, datadir, len(snrs))
         for session_id in sessions
         for snr in snrs
     )
