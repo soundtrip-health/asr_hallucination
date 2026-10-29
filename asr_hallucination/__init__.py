@@ -10,5 +10,6 @@ from . import transcription
 from . import audio
 from . import alignment
 from . import ami_utils
+from . import perplexity
 
-__all__ = ["transcription", "audio", "alignment", "ami_utils"]
+__all__ = ["transcription", "audio", "alignment", "ami_utils", "perplexity"]

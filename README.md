@@ -11,6 +11,7 @@ This package provides:
 - **Noise mixing at a target SNR**, plus Silero VAD → [docs/snr_mixing.md](docs/snr_mixing.md)
 - **Time-constrained word alignment**, which avoids the spurious long-range matches that plain edit-distance alignment makes on noisy transcripts → [docs/time_constrained_alignment.md](docs/time_constrained_alignment.md)
 - **Hallucination detection**: labels every ASR word as match / substitution / insertion / insertion-during-silence, as the basis for finding hallucinated sequences → [docs/hallucination_detection.md](docs/hallucination_detection.md)
+- **Perplexity analysis**: language-model fluency of hallucinated sequences compared with length-matched human sequences → [docs/perplexity_analysis.md](docs/perplexity_analysis.md)
 - **Analysis code** for the paper's figures, tables, and statistics
 
 See [`docs/`](docs/README.md) for the pipeline overview, output file formats, configuration, and known limitations.
@@ -29,6 +30,7 @@ pip install -e .
 pip install -e ".[whisperx]"     # For WhisperX
 pip install -e ".[aws]"          # For AWS Transcribe
 pip install -e ".[assemblyai]"   # For AssemblyAI
+pip install -e ".[perplexity]"   # For the perplexity analysis (transformers)
 pip install -e ".[all]"          # Install all optional dependencies
 
 # For Reverb, see installation instructions below
@@ -87,6 +89,8 @@ seqs = find_hallucination_sequences(aligned["wsp"]["word_segments"], ops["wsp"])
 
 `notebooks/analysis.py` is a percent-format (`# %%`) notebook that produces the paper's figures, LaTeX tables, and t-tests. Open it in VS Code or Jupyter (via jupytext), or run it as a script. Set `AMI_OUT_DIR` to your transcript output directory (default `/data/transcripts/ami/out`). Outputs, including the timestamp-jitter histograms and the `jitter_quantiles.tex` table, are written to `figures/`.
 
+`notebooks/perplexity.py` (same format, same `AMI_OUT_DIR`) reproduces `perplexity_distributions.png`. It finds hallucination sequences at 0 dB music noise, scores them with BERT-large as in the paper, and compares them with length-matched human sequences. It needs the `perplexity` extra, and a GPU is recommended. See [docs/perplexity_analysis.md](docs/perplexity_analysis.md).
+
 ## Project Structure
 
 ```
@@ -96,13 +100,15 @@ asr_hallucination/
 │   ├── audio.py           # Audio processing utilities
 │   ├── alignment.py       # Word alignment algorithms
 │   ├── ami_utils.py       # AMI corpus utilities
+│   ├── perplexity.py      # LM perplexity and length-matched sampling
 │   ├── processing.py      # High-level processing functions
 │   ├── s3_utils.py        # S3 helpers (AWS Transcribe I/O)
 │   └── config.py          # Configuration and logging
 ├── scripts/
 │   └── run_transcriptions.py  # CLI for batch transcription
 ├── notebooks/
-│   └── analysis.py        # Analysis and figure generation
+│   ├── analysis.py        # Analysis and figure generation
+│   └── perplexity.py      # Perplexity analysis (perplexity_distributions.png)
 ├── data/                  # AMI split IDs and noise recordings (noise1.flac, noise2.flac)
 ├── docs/                  # Detailed method documentation
 ├── figures/               # Generated figures and tables

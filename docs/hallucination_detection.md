@@ -20,7 +20,8 @@ Hallucinations are *fluent*. The paper's perplexity analysis
 (`perplexity_distributions.png`) shows that hallucinated sequences from all four
 ASRs are about as linguistically coherent as same-length human transcript
 sequences. They usually cannot be spotted by reading the transcript alone,
-which is why a time-aligned reference is needed to find them.
+which is why a time-aligned reference is needed to find them. See
+[Perplexity analysis](perplexity_analysis.md).
 
 ## Step 1: label every ASR word
 
@@ -99,8 +100,8 @@ what `hallucination_count.png` shows. To print a quick summary of the longest
 sequences for each ASR (shown as `length@start_time`), pass `print_top_n=N` to
 `compute_hallucinations`, or call `print_longest_hallucinations()` directly.
 
-> The paper's perplexity analysis (`perplexity_distributions.png`) is not
-> included in this repository.
+The perplexity analysis that produces `perplexity_distributions.png` uses these
+sequences. See [Perplexity analysis](perplexity_analysis.md).
 
 ## Heuristics for hallucinations without a reference
 

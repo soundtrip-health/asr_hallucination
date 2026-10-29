@@ -47,11 +47,13 @@ dependencies = [
 whisperx = ["whisperx>=3.0.0"]
 aws = ["boto3>=1.20.0"]
 assemblyai = ["assemblyai>=0.17.0"]
+perplexity = ["transformers>=4.30.0"]  # notebooks/perplexity.py
 reverb = []  # See https://github.com/revdotcom/reverb for installation
 all = [
     "whisperx>=3.0.0",
     "boto3>=1.20.0",
     "assemblyai>=0.17.0",
+    "transformers>=4.30.0",
 ]
 dev = [
     "pytest>=7.0.0",
