@@ -8,6 +8,7 @@ a quick start, see the [top-level README](../README.md).
 | [Noise mixing and SNR](snr_mixing.md) | How background noise is mixed into AMI audio at a target SNR, the math, and how to interpret the SNR values |
 | [Time-constrained alignment](time_constrained_alignment.md) | Why plain edit-distance alignment misleads on noisy audio, plus the two time-aware aligners, their inputs/outputs, and tolerance choice |
 | [Hallucination detection](hallucination_detection.md) | The paper's hallucination definition, per-word M/S/I/H labeling, grouping into sequences, and reference-free heuristics |
+| [Perplexity analysis](perplexity_analysis.md) | Language-model perplexity of hallucination sequences vs. length-matched human sequences (`perplexity_distributions.png`) |
 
 ## Pipeline overview
 
@@ -34,6 +35,8 @@ AMI words XML (human reference) ────────────────
         jiwer word alignment → WER, S/D/I                    normalize_xscript → align_using_time
         (notebooks/analysis.py; paper figures/tables)         → compute_wer / compute_hallucinations
                                                               → find_hallucination_sequences
+                                                              → LM perplexity vs. human baseline
+                                                                (notebooks/perplexity.py)
 ```
 
 ### Stage 1: transcription (`scripts/run_transcriptions.py`)
@@ -102,6 +105,12 @@ consecutive matches, and writes `jitter_hist.png`, `jitter_hist_neg.png`, and
 `jitter_quantiles.tex`. Set the data location with the `AMI_OUT_DIR`
 environment variable (default `/data/transcripts/ami/out`).
 
+`notebooks/perplexity.py` is a second notebook in the same format. It finds
+hallucination sequences with the time-constrained aligner, scores them with a
+language model (BERT-large, as in the paper), and compares them with length-matched
+human sequences to produce `perplexity_distributions.png`. It needs the
+`perplexity` extra. See [Perplexity analysis](perplexity_analysis.md).
+
 ### Configuration
 
 | Setting | CLI flag | Environment variable |
@@ -123,7 +132,8 @@ Read it with `ami_utils.get_splits()`.
 
 - **Time-constrained alignment is greedy**, not globally optimal (see
   [the alignment doc](time_constrained_alignment.md#worked-example)).
-- **The perplexity analysis** behind `perplexity_distributions.png` is not
-  included.
+- **The perplexity analysis scores text with BERT-large used as a causal LM**,
+  following the paper. This yields relative fluency scores rather than true
+  perplexities (see [the perplexity doc](perplexity_analysis.md#caveats)).
 - **WhisperX and Reverb are required** by `process_session_audio`. A
   session's job fails if either is not installed.
