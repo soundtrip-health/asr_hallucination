@@ -2,7 +2,11 @@
 
 import io
 import os
-from botocore.exceptions import ClientError
+
+try:
+    from botocore.exceptions import ClientError
+except ImportError:  # boto3/botocore is optional (only needed for AWS)
+    ClientError = Exception
 
 from .config import setup_logging
 

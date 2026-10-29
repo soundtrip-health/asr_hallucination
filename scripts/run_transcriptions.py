@@ -25,9 +25,10 @@ except ImportError:
 
 DEFAULT_ENV = "~/.env"
 DEFAULT_SESSION_TYPES = ",".join(["train", "validation", "test"])
-DEFAULT_NOISEFILE = "./data/noise1.wav"
+DEFAULT_NOISEFILE = "./data/noise1.flac"
 DEFAULT_SNRS = ",".join([str(i) for i in [np.inf, 20, 15, 10, 5, 0, -5, -10, -15, -20]])
 DEFAULT_NJOBS = max(1, joblib.cpu_count() // 2)
+S3_SCRATCH_ENV = "AWS_S3_SCRATCH_URI"
 
 
 def main():
@@ -46,6 +47,12 @@ def main():
                         help=f'Number of jobs to run in parallel. Default is num cpus // 2 ({DEFAULT_NJOBS}).')
     parser.add_argument('--snrs', type=str, default=DEFAULT_SNRS,
                        help=f'comma-separated list of SNR values to process (default: {DEFAULT_SNRS})')
+    parser.add_argument('--s3-scratch', type=str,
+                        help=f'S3 prefix for temporary AWS Transcribe files, e.g. s3://your-bucket/tmp '
+                             f'(default: ${S3_SCRATCH_ENV}). AWS Transcribe is skipped if not set.')
+    parser.add_argument('--aws-region', type=str,
+                        help='AWS region for Transcribe/S3 (default: $AWS_REGION, $AWS_DEFAULT_REGION, or your AWS config). '
+                             'Should match the region of the scratch bucket.')
     parser.add_argument("--session-types", type=str, default=DEFAULT_SESSION_TYPES,
                         help=f"comma-separated list of session types to process (default: {DEFAULT_SESSION_TYPES})")
     args = parser.parse_args()
@@ -64,12 +71,16 @@ def main():
             logger.warning("AWS credentials not found in environment. AWS Transcribe and S3 operations will be skipped.")
             s3_session = None
         else:
-            region = "eu-west-2"
+            region = args.aws_region or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
             s3_session = boto3.Session(
                 aws_access_key,
                 aws_secret_key,
                 region_name=region
             )
+
+    s3_scratch = args.s3_scratch or os.environ.get(S3_SCRATCH_ENV)
+    if s3_session is not None and not s3_scratch:
+        logger.warning(f"No S3 scratch location (--s3-scratch or ${S3_SCRATCH_ENV}). AWS Transcribe will be skipped.")
 
     datadir = Path(args.datadir)
     outbase = Path(args.outdir) if args.outdir else datadir / "out"
@@ -106,7 +117,9 @@ def main():
 
     # Run parallel transcription jobs
     results = joblib.Parallel(n_jobs=args.njobs, verbose=1)(
-        joblib.delayed(process_session)(session_id, snr, outbase, s3_session, noisefn, datadir, len(snrs))
+        joblib.delayed(process_session)(
+            session_id, snr, outbase, s3_session, noisefn, datadir, len(snrs), s3_scratch_uri=s3_scratch
+        )
         for session_id in sessions
         for snr in snrs
     )

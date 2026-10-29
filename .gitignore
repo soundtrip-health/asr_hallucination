@@ -50,6 +50,7 @@ ami_processing.log
 *.wav
 *.mp3
 *.flac
+!data/noise*.flac
 *.m4a
 *.feather
 out/

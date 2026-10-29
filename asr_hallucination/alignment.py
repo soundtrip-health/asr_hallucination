@@ -1,16 +1,21 @@
-import json
-import pathlib
+"""Time-constrained word alignment, WER, and hallucination detection."""
+
 import pandas as pd
 import numpy as np
 
-def get_splits():
-    """
-    Use the same splits as https://huggingface.co/datasets/edinburghcstr/ami/blob/main/ami.py.
-    """
-    curdir = pathlib.Path(__file__).parent.absolute()
-    with open(curdir / "split_ids.json") as fp:
-        splits = json.load(fp)
-    return splits
+# Disfluencies / filler words removed during normalization (see the paper's Methods section).
+FILLER_WORDS = ["hmm", "mm", "mhm", "mmm", "uh", "um", "erm", "err", "er", "m", "ah",
+                "la", "da", "ooh", "aum", "rawr", "om"]
+FILLER_PATTERN = r"\b(" + "|".join(FILLER_WORDS) + r")\b"
+
+
+def get_normalizer():
+    """Return the whisper-normalizer EnglishTextNormalizer configured with FILLER_WORDS."""
+    from whisper_normalizer.english import EnglishTextNormalizer
+
+    normalizer = EnglishTextNormalizer()
+    normalizer.ignore_patterns = FILLER_PATTERN
+    return normalizer
 
 
 def normalize_xscript(df, normalizer):
@@ -129,7 +134,7 @@ def align_using_time(transcripts: dict, time_tolerance: float | dict[str, float]
 
     transcribers = [transcriber for transcriber in transcripts if transcriber != "hum"]
 
-    if isinstance(time_tolerance, float):
+    if isinstance(time_tolerance, (int, float)):
         time_tolerance = {transcriber: time_tolerance for transcriber in transcribers}
 
     unmatched_leftovers = {transcriber: [] for transcriber in transcribers}
@@ -221,9 +226,41 @@ def align_using_time(transcripts: dict, time_tolerance: float | dict[str, float]
     return transcripts
 
 
+def _has_overlap(starts, prefix_max_stops, start_time, stop_time):
+    """True if any interval [starts[i], stops[i]) overlaps [start_time, stop_time).
+
+    starts must be sorted; prefix_max_stops[i] is max(stops[:i+1]).
+    """
+    idx = np.searchsorted(starts, stop_time, side="left")
+    if start_time == stop_time:
+        # zero-length word: count a reference word starting exactly here as overlapping
+        idx = np.searchsorted(starts, stop_time, side="right")
+    return idx > 0 and prefix_max_stops[idx - 1] > start_time
+
+
 def compute_hallucinations(
-    transcripts: dict, transcripts_original: dict, print_top_n: int = 0
-) -> dict[str, float]:
+    transcripts: dict, transcripts_original: dict, print_top_n: int = 0, silence_test: str = "overlap"
+) -> dict[str, list[str]]:
+    """Label every ASR word as M (match), S (substitution), I (insertion during speech) or
+    H (insertion during reference silence).
+
+    Expects the output of align_using_time() and a deep copy of its input. Each ASR's
+    word_segments list is rebuilt in place to contain all of its words in time order, so
+    operations[asr][i] labels transcripts[asr]["word_segments"][i].
+
+    Args:
+        transcripts: aligned transcripts from align_using_time()
+        transcripts_original: deep copy of the transcripts before alignment (sanity check)
+        print_top_n: if > 0, print the N longest hallucination sequences per ASR
+        silence_test: how to decide whether an inserted word is in reference silence (H):
+            "overlap" (default): no reference word overlaps the inserted word's [start, stop)
+            "onset": no reference word *starts* within the inserted word's [start, stop)
+
+    Returns:
+        dict mapping ASR name to a list of labels
+    """
+    if silence_test not in ("overlap", "onset"):
+        raise ValueError(f"Unknown silence_test '{silence_test}'.")
     non_human_transcribers = [transcriber for transcriber in transcripts if transcriber != "hum"]
     for transcriber in non_human_transcribers:
         for word in transcripts["hum"]["word_segments"]:
@@ -239,26 +276,98 @@ def compute_hallucinations(
             [word["start_time"] for word in transcripts[transcriber]["word_segments"]],
         )
 
+    ref_words = sorted(transcripts["hum"]["word_segments"], key=lambda x: x["start_time"])
+    ref_starts = np.array([word["start_time"] for word in ref_words], dtype=float)
+    ref_prefix_max_stops = np.maximum.accumulate(np.array([word["stop_time"] for word in ref_words], dtype=float))
+
     operations = {}
     for transcriber in non_human_transcribers:
         operations[transcriber] = []
         for word in transcripts[transcriber]["word_segments"]:
             if "matches" in word:
                 operations[transcriber].append("M")
-            if "substitutes" in word:
+            elif "substitutes" in word:
                 operations[transcriber].append("S")  # potentially hallucination
-            if "insert" in word:
-                segment, *_ = get_temporal_segment(transcripts["hum"]["word_segments"], word["start_time"], word["stop_time"])
-                if segment:
-                    operations[transcriber].append("I")  # potentially hallucination
+            elif "insert" in word:
+                if silence_test == "overlap":
+                    in_speech = len(ref_words) > 0 and _has_overlap(
+                        ref_starts, ref_prefix_max_stops, word["start_time"], word["stop_time"])
                 else:
-                    operations[transcriber].append("H")  # hallucination
+                    segment, *_ = get_temporal_segment(ref_words, word["start_time"], word["stop_time"])
+                    in_speech = len(segment) > 0
+                operations[transcriber].append("I" if in_speech else "H")  # I: potentially hallucination
 
-    if not print_top_n > 0:
-        return operations
+    if print_top_n > 0:
+        print_longest_hallucinations(transcripts, operations, print_top_n)
 
+    return operations
+
+
+def find_hallucination_sequences(
+    words: list[dict],
+    operations: list[str],
+    min_length: int = 3,
+    max_gap: float = 1.0,
+    error_labels: tuple[str, ...] = ("S", "I", "H"),
+) -> list[dict]:
+    """Group per-word labels into hallucination sequences.
+
+    Following the paper, a hallucination is a run of at least min_length consecutive error words
+    (substitutions or insertions) in the ASR transcript where the gap between one word's stop_time
+    and the next word's start_time is no more than max_gap seconds. A non-error word (match) or a
+    longer gap ends the run.
+
+    Args:
+        words: one ASR's word_segments after compute_hallucinations() (sorted by start_time)
+        operations: the matching list of labels from compute_hallucinations()
+        min_length: minimum number of words in a sequence
+        max_gap: maximum allowed gap between consecutive words, in seconds
+        error_labels: labels that count as errors
+
+    Returns:
+        list of dicts (in time order) with keys: start_idx, end_idx (exclusive), length,
+        start_time, stop_time, text, labels
+    """
+    if len(words) != len(operations):
+        raise ValueError(f"words ({len(words)}) and operations ({len(operations)}) must have the same length.")
+
+    sequences = []
+
+    def close_run(run_start, run_end):
+        if run_start is not None and run_end - run_start >= min_length:
+            run = words[run_start:run_end]
+            sequences.append({
+                "start_idx": run_start,
+                "end_idx": run_end,
+                "length": run_end - run_start,
+                "start_time": run[0]["start_time"],
+                "stop_time": run[-1]["stop_time"],
+                "text": " ".join(word.get("word_norm", word.get("word", "")) for word in run),
+                "labels": "".join(operations[run_start:run_end]),
+            })
+
+    run_start = None
+    for idx, (word, op) in enumerate(zip(words, operations)):
+        if op not in error_labels:
+            close_run(run_start, idx)
+            run_start = None
+            continue
+        if run_start is not None and word["start_time"] - words[idx - 1]["stop_time"] > max_gap:
+            close_run(run_start, idx)
+            run_start = None
+        if run_start is None:
+            run_start = idx
+    close_run(run_start, len(words))
+    return sequences
+
+
+def print_longest_hallucinations(transcripts: dict, operations: dict, top_n: int, **kwargs):
+    """Print the top_n longest hallucination sequences (as length@start_time) for each ASR.
+
+    Extra kwargs are passed to find_hallucination_sequences().
+    """
     cell_width = 11
-    headers = ["transcriber"] + ["Top " + str(i + 1) for i in range(print_top_n)]
+    headers = ["transcriber"] + ["Top " + str(i + 1) for i in range(top_n)]
     header_row = " | ".join(f"{h:^{cell_width}s}" for h in headers)
     print("=" * len(header_row))
     print("Longest hallucination sequences".center(len(header_row)))
@@ -266,22 +375,13 @@ def compute_hallucinations(
     print(header_row)
     print("=" * len(header_row))
 
-    result = {}
-    for transcriber in operations:
-        result[transcriber] = find_longest_sequence(operations[transcriber], "H")
-
-        row = []
-        for i in range(print_top_n):
-            if i < len(result[transcriber]):
-                row.append(f"{result[transcriber][i][0]}@{result[transcriber][i][1]}")
-            else:
-                row.append("")
-
-        row = [transcriber] + row
+    for transcriber, ops in operations.items():
+        sequences = find_hallucination_sequences(transcripts[transcriber]["word_segments"], ops, **kwargs)
+        sequences = sorted(sequences, key=lambda x: x["length"], reverse=True)[:top_n]
+        row = [transcriber] + [f"{seq['length']}@{seq['start_time']:.1f}" for seq in sequences]
+        row += [""] * (top_n + 1 - len(row))
         print(" | ".join(f"{cell:^{cell_width}s}" for cell in row))
         print("-" * len(header_row))
-
-    return operations
 
 
 def compute_wer(transcripts: dict) -> dict[str, float]:

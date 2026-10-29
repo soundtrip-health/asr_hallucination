@@ -1,21 +1,26 @@
 # ASR Hallucination Detection
 
-Tools for analyzing ASR hallucinations using time-aligned word-level transcripts. This code accompanies a scientific paper analyzing hallucination behavior across multiple commercial and open-source ASR systems.
+Tools for analyzing ASR hallucinations using time-aligned word-level transcripts. This code accompanies the paper *Evaluating Hallucination Characteristics of Automated Speech Recognition Systems* (Dougherty, Shafiei, Alti, Leininger & Staples). The paper compares how four ASR systems behave as background noise increases. LaTeX source and a PDF are in [`latex/`](latex/).
 
 ## Overview
 
+The pipeline takes meetings from the [AMI corpus](https://groups.inf.ed.ac.uk/ami/corpus/), mixes in realistic clinic background noise (office room noise or instrumental music) at SNRs from +20 to −20 dB, transcribes every version with four ASR systems, and compares the results to AMI's human, word-timestamped transcripts.
+
 This package provides:
-- Transcription with multiple ASR systems (WhisperX, AWS Transcribe, AssemblyAI, Reverb)
-- Audio processing utilities (mixing with noise at various SNR levels, VAD)
-- Time-constrained word alignment for computing WER and detecting hallucinations
-- Analysis tools for the AMI corpus with configurable noise and SNR levels
+- **Transcription** with WhisperX, AWS Transcribe, AssemblyAI, and Rev's Reverb, all saved in a common word-level format
+- **Noise mixing at a target SNR**, plus Silero VAD → [docs/snr_mixing.md](docs/snr_mixing.md)
+- **Time-constrained word alignment**, which avoids the spurious long-range matches that plain edit-distance alignment makes on noisy transcripts → [docs/time_constrained_alignment.md](docs/time_constrained_alignment.md)
+- **Hallucination detection**: labels every ASR word as match / substitution / insertion / insertion-during-silence, as the basis for finding hallucinated sequences → [docs/hallucination_detection.md](docs/hallucination_detection.md)
+- **Analysis code** for the paper's figures, tables, and statistics
+
+See [`docs/`](docs/README.md) for the pipeline overview, output file formats, configuration, and known limitations.
 
 ## Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/asr-hallucination.git
-cd asr-hallucination
+git clone https://github.com/soundtrip-health/asr_hallucination.git
+cd asr_hallucination
 
 # Install core dependencies
 pip install -e .
@@ -36,28 +41,51 @@ pip install -e ".[all]"          # Install all optional dependencies
 Process AMI corpus sessions with multiple ASR systems:
 
 ```bash
-# Set up environment variables (AWS credentials, AssemblyAI API key, etc.)
-cp .env.example ~/.env
-# Edit ~/.env with your credentials
+# Credentials are read from ~/.env (override with --envfile):
+#   AWS_ACCESS_KEY_ID=...                     # AWS Transcribe (optional)
+#   AWS_SECRET_ACCESS_KEY=...
+#   AWS_REGION=us-east-1                      # region of your scratch bucket
+#   AWS_S3_SCRATCH_URI=s3://your-bucket/tmp   # temp storage for AWS Transcribe jobs
+#   ASSEMBLYAI_API_KEY=...                    # AssemblyAI (optional)
 
 # Run transcriptions on a subset of sessions
 python scripts/run_transcriptions.py /path/to/ami/corpus \
     --outdir ./output \
     --session-types train \
     --sampfrac 0.1 \
-    --njobs 4
+    --njobs 4 \
+    --noisefile ./data/noise1.flac \
+    --snrs inf,20,10,0,-10
+```
+
+Each `(session, SNR)` pair is processed independently, and existing outputs are skipped, so you can safely re-run after an interruption. AWS and AssemblyAI are skipped if their credentials are missing. AWS also needs an S3 scratch prefix (`--s3-scratch` or `AWS_S3_SCRATCH_URI`). WhisperX and Reverb must be installed (a CUDA GPU is recommended). The noise recordings used in the paper are in `data/` (`noise1.flac` = music, `noise2.flac` = office). See [docs/README.md](docs/README.md) for the output files.
+
+### Alignment and hallucination labeling
+
+```python
+import copy
+import pandas as pd
+from asr_hallucination.alignment import (
+    get_normalizer, normalize_xscript, align_using_time, compute_wer,
+    compute_hallucinations, find_hallucination_sequences,
+)
+
+df = pd.read_feather("out/ES2002a/xscript_noise2_snr+00.feather")
+norm = get_normalizer()   # whisper-normalizer + the paper's filler-word list
+transcripts = {
+    t: {"word_segments": normalize_xscript(g.sort_values("start_time"), norm).to_dict("records")}
+    for t, g in df.groupby("transcriber")
+}
+original = copy.deepcopy(transcripts)
+aligned = align_using_time(transcripts, time_tolerance=0.44)
+print(compute_wer(aligned))                    # S/D/I/hits/WER per ASR
+ops = compute_hallucinations(aligned, original)  # per-word "M"/"S"/"I"/"H" labels per ASR
+seqs = find_hallucination_sequences(aligned["wsp"]["word_segments"], ops["wsp"])  # >=3 errors, gaps <=1 s
 ```
 
 ### Analysis
 
-Generate figures and tables for the paper:
-
-```bash
-cd notebooks
-python analysis.py
-```
-
-Results will be saved in the `figures/` directory.
+`notebooks/analysis.py` is a percent-format (`# %%`) notebook that produces the paper's figures, LaTeX tables, and t-tests. Open it in VS Code or Jupyter (via jupytext), or run it as a script. Set `AMI_OUT_DIR` to your transcript output directory (default `/data/transcripts/ami/out`). Outputs, including the timestamp-jitter histograms and the `jitter_quantiles.tex` table, are written to `figures/`.
 
 ## Project Structure
 
@@ -69,18 +97,21 @@ asr_hallucination/
 │   ├── alignment.py       # Word alignment algorithms
 │   ├── ami_utils.py       # AMI corpus utilities
 │   ├── processing.py      # High-level processing functions
+│   ├── s3_utils.py        # S3 helpers (AWS Transcribe I/O)
 │   └── config.py          # Configuration and logging
 ├── scripts/
 │   └── run_transcriptions.py  # CLI for batch transcription
 ├── notebooks/
 │   └── analysis.py        # Analysis and figure generation
-├── data/                  # Data files (splits, noise samples)
-└── figures/               # Generated figures and tables
+├── data/                  # AMI split IDs and noise recordings (noise1.flac, noise2.flac)
+├── docs/                  # Detailed method documentation
+├── figures/               # Generated figures and tables
+└── latex/                 # Paper source and PDF
 ```
 
 ## Requirements
 
-- Python 3.9+
+- Python 3.10+
 - FFmpeg (for audio processing with pydub)
 - CUDA-capable GPU (recommended for WhisperX and Reverb)
 
@@ -178,24 +209,28 @@ After downloading the AMI corpus, make sure that your data directory is structur
 
 **Important Notes:**
 - **AMI corpus directory structure**:
-  - The above director structure is the recommended AMI corpus directory structure and is what you will get by using the included download script.
+  - The above directory structure is the recommended AMI corpus directory structure and is what you will get by using the included download script.
 - **Output directory**: The `out/` directory will be created automatically in your `datadir` (or `--outdir` if specified) - it stores all processed transcripts and intermediate files like:
-  - `{session_id}/xscript_{transcriber}_snr{snr}.json` - Individual transcript files
+  - `{session_id}/xscript_{transcriber}_{noise}_snr{snr}.json` - Individual transcript files
   - `{session_id}/audio_{noise}_snr{snr}.wav` - Noise-mixed audio files
   - `{session_id}/vad_{noise}_snr{snr}.feather` - VAD probability files
+  - `{session_id}/xscript_{noise}_snr{snr}.feather` and `xscript_{noise}.feather` - Combined transcripts (all ASRs + human)
+
+  SNRs are formatted with a sign and two digits (`+20`, `-05`, `+inf`). See [docs/README.md](docs/README.md#output-layout) for details.
 
 ## Citation
 
 If you use this code in your research, please cite our paper:
 
 ```bibtex
-@article{yourpaper2024,
-  title={Your Paper Title},
-  author={Your Name},
-  journal={Journal Name},
-  year={2024}
+@misc{dougherty_asr_hallucination,
+  title  = {Evaluating Hallucination Characteristics of Automated Speech Recognition Systems},
+  author = {Dougherty, Robert F. and Shafiei, Mario and Alti, Merve and Leininger, Carly and Staples, Patrick},
+  note   = {Code: https://github.com/soundtrip-health/asr_hallucination}
 }
 ```
+
+*(This entry will be updated with full publication details once the paper is published.)*
 
 ## License
 

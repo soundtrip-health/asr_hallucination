@@ -1,6 +1,7 @@
 """High-level processing functions for batch transcription jobs."""
 
 import json
+import os
 import time
 import pandas as pd
 import numpy as np
@@ -22,8 +23,13 @@ from .transcription import (
 )
 from .s3_utils import upload_file, download_file, delete_uri
 
+# S3 prefix for temporary AWS Transcribe input/output files, e.g. "s3://your-bucket/tmp".
+# Can be overridden per call or with the AWS_S3_SCRATCH_URI environment variable.
+S3_SCRATCH_ENV = "AWS_S3_SCRATCH_URI"
 
-def process_session_audio(session_id, outbase, s3_session, datadir, snr=float("inf"), noisefn=None, rerun=False):
+
+def process_session_audio(session_id, outbase, s3_session, datadir, snr=float("inf"), noisefn=None, rerun=False,
+                          s3_scratch_uri=None):
     """
     Process a single AMI session: mix with noise, compute VAD, and transcribe with all available ASR systems.
 
@@ -38,11 +44,14 @@ def process_session_audio(session_id, outbase, s3_session, datadir, snr=float("i
         snr: signal-to-noise ratio in dB
         noisefn: path to noise file
         rerun: whether to rerun if output files exist
+        s3_scratch_uri: S3 prefix for temporary AWS Transcribe files (e.g. "s3://your-bucket/tmp");
+            defaults to the AWS_S3_SCRATCH_URI environment variable. AWS is skipped if unset.
 
     Returns:
         tuple of (vad_df, aws_df, aai_df, wsp_df, rev_df)
     """
     logger = setup_logging()
+    s3_scratch_uri = s3_scratch_uri or os.environ.get(S3_SCRATCH_ENV)
     audio_path = get_audiofile(session_id, datadir)
     if not audio_path:
         logger.error(f"Audio file not found for {session_id=}.")
@@ -96,14 +105,18 @@ def process_session_audio(session_id, outbase, s3_session, datadir, snr=float("i
     elif s3_session is None:
         logger.warning("AWS credentials not available. Skipping AWS transcription.")
         aws_df = pd.DataFrame()
+    elif not s3_scratch_uri:
+        logger.warning(f"No S3 scratch location (set {S3_SCRATCH_ENV} or --s3-scratch). Skipping AWS transcription.")
+        aws_df = pd.DataFrame()
     else:
         # upload temp file. The file uri must be unique to avoid bugs when multi-threaded.
         job_name = get_uuid()
-        aws_tmp_audio_uri = f"s3://compass-scratch/tmp/{job_name}_audio.wav"
+        scratch = s3_scratch_uri.rstrip("/")
+        aws_tmp_audio_uri = f"{scratch}/{job_name}_audio.wav"
         upload_file(s3_session, aws_tmp_audio_uri, audio_path)
         # For a list of language code options: https://docs.aws.amazon.com/transcribe/latest/dg/supported-languages.html
         languages = ["en-US", "en-GB"]  # add en-AB (scottish?)
-        result_uri = f"s3://compass-scratch/tmp/{job_name}.json"
+        result_uri = f"{scratch}/{job_name}.json"
         logger.info(f"Transcribing AWS {aws_path=}, {job_name=}, {aws_tmp_audio_uri=}, {result_uri=}, {languages=}...")
         aws_job_status, transcribe_client = aws_transcribe_audio(s3_session, aws_tmp_audio_uri, result_uri, languages=languages, job_name=job_name)
 
@@ -194,7 +207,8 @@ def merge_session_files(session_dir, num_snrs, noise_name):
     df.to_feather(outfn)
 
 
-def process_session(session_id, snr, outbase, s3_session, noisefn, datadir, num_snrs=None, reprocess=False):
+def process_session(session_id, snr, outbase, s3_session, noisefn, datadir, num_snrs=None, reprocess=False,
+                    s3_scratch_uri=None):
     """Process a single session at a specific SNR level.
 
     Args:
@@ -206,13 +220,16 @@ def process_session(session_id, snr, outbase, s3_session, noisefn, datadir, num_
         datadir: base directory containing AMI corpus
         num_snrs: total number of SNR levels (for merging)
         reprocess: whether to reprocess existing files
+        s3_scratch_uri: S3 prefix for temporary AWS Transcribe files (see process_session_audio)
     """
     logger = setup_logging()
     out_file = outbase / session_id / f"xscript_{noisefn.stem}_snr{snr:+03.0f}.feather"
     if out_file.is_file() and not reprocess:
         logger.info(f"File {out_file} exists and reprocess is False. Skipping...")
         return
-    _, aws_df, aai_df, wsp_df, rev_df = process_session_audio(session_id, outbase, s3_session, datadir, snr=snr, noisefn=noisefn)
+    _, aws_df, aai_df, wsp_df, rev_df = process_session_audio(
+        session_id, outbase, s3_session, datadir, snr=snr, noisefn=noisefn, s3_scratch_uri=s3_scratch_uri
+    )
     hum_df = load_manual_transcript_words(session_id, datadir)
     hum_df["snr"] = 0
     df = pd.concat((hum_df, aws_df, aai_df, wsp_df, rev_df)).reset_index(drop=True)
@@ -226,19 +243,19 @@ def process_session(session_id, snr, outbase, s3_session, noisefn, datadir, num_
         merge_session_files(outbase / session_id, num_snrs, noisefn.stem)
 
 
-def make_noises(outpath, s3_session, source_file="s3://compass-ds-data/transcribe_test_data/cp_playlist.mp3"):
+def make_noises(outpath, source_file, s3_session=None):
     """
     Make a series of noise files using different parts of the source file.
 
-    For the AMI analysis, the source file is a 4-hour recording of the Compass Pathways
-    ph2b playlist. There is some excessive room noise in the first few minutes, so we start
+    For the AMI analysis, the source file was a 4-hour room recording of an instrumental music
+    playlist. There is some excessive room noise in the first few minutes, so we start
     at 7 minutes into the file. We'll use this to mix with audio files that should be at most
     60 minutes so we'll create files that are 75 minutes long to be sure.
 
     Args:
         outpath: output directory for noise files
-        s3_session: boto3 session
-        source_file: S3 URI or local path to source audio file
+        source_file: local path or S3 URI (e.g. "s3://your-bucket/noise_source.mp3") of the source audio
+        s3_session: boto3 session (only needed if source_file is an S3 URI)
     """
     logger = setup_logging()
     if source_file.startswith("s3://") and s3_session is None:
@@ -249,6 +266,6 @@ def make_noises(outpath, s3_session, source_file="s3://compass-ds-data/transcrib
     for idx, start_time in enumerate(range(START, int(noise.duration_seconds * 1000)-DURATION, DURATION)):
         end_time = start_time + DURATION
         noise_seg = noise[start_time:end_time]
-        fn = Path(outpath) / f"noise{idx+1}.wav"
+        fn = Path(outpath) / f"noise{idx+1}.flac"
         print(f"{str(fn)}: start at {start_time//60000} minutes (duration {noise_seg.duration_seconds/60:0.1f} minutes)")
-        noise_seg.export(fn, format="wav")
+        noise_seg.export(fn, format="flac")
