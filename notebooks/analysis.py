@@ -1,7 +1,8 @@
 # %%
 # %%capture
-# %pip install pandas jiwer plotly nbformat kaleido whisper-normalizer python-dotenv
+# %pip install pandas jiwer plotly nbformat kaleido whisper-normalizer
 # %pip install assemblyai whisperx silero_vad filetype pydub pyarrow
+
 
 # %%
 import json
@@ -13,152 +14,43 @@ import time
 import pandas as pd
 import numpy as np
 import scipy.stats as stats
-from whisper_normalizer.english import EnglishTextNormalizer
 import jiwer
 import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
-from dotenv import load_dotenv
-import boto3
 from joblib import Parallel, delayed
-
-load_dotenv(os.path.expanduser("~/.env"), override=True)
-
-import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# Repo root: __file__ is undefined when run as a Jupyter notebook, so fall back to the cwd
+# (assumed to be either the repo root or the notebooks/ directory).
+try:
+    REPO_ROOT = Path(__file__).resolve().parent.parent
+except NameError:
+    REPO_ROOT = Path.cwd().resolve()
+    if REPO_ROOT.name == "notebooks":
+        REPO_ROOT = REPO_ROOT.parent
+sys.path.insert(0, str(REPO_ROOT))
 
 from asr_hallucination.ami_utils import get_splits
+from asr_hallucination.alignment import get_normalizer, normalize_xscript
 
 pd.set_option("display.max_rows", 300)
 pd.set_option("display.max_columns", 300)
 pd.set_option("display.max_colwidth", 1000)
 
-FIGDIR = Path("./figures")
+# Directory with per-session transcripts ({OUT_DIR}/{session_id}/xscript_{noise}.feather)
+OUT_DIR = Path(os.environ.get("AMI_OUT_DIR", "/data/transcripts/ami/out"))
+FIGDIR = REPO_ROOT / "figures"
+FIGDIR.mkdir(parents=True, exist_ok=True)
 
-normalizer = EnglishTextNormalizer()
-# Add common british disfluency tag "erm" and "err". Also add "m", as assembly ai seems
-# to think people are saying the name of the letter "m" quite often. Maybe it's interpreting
-# a disfluency like "em" pronounced with an accent?
-#normalizer.ignore_patterns = r"\b(hmm|mm|mhm|mmm|uh|um|erm|err|er|m|ah|sadeena|radhe|la|da|ooh|aum|rawr|om)\b"
-normalizer.ignore_patterns = r"\b(hmm|mm|mhm|mmm|uh|um|erm|err|er|m|ah|ooh)\b"
+# whisper-normalizer EnglishTextNormalizer with the paper's filler-word list
+normalizer = get_normalizer()
 
 XSCRIBER_MAP = {"aai": "AssemblyAI", "aws": "AWS Transcribe", "wsp": "WhisperX", "rev": "Reverb"}
 NOISE_MAP = {"noise2": "Office", "noise1": "Music"}
 METRIC_MAP = {"wer": "WER", "ins_norm": "Insertions", "del_norm": "Deletions", "sub_norm": "Substitutions"}
 # keep a list to ensure the order is consistent even if dicts aren't ordered.
 XSCRIBERS = list(XSCRIBER_MAP.values())
-
-# %%
-
-def prepare_transcript(df: pd.DataFrame, timestamp_numbers: bool = True) -> pd.DataFrame:
-    """
-    Process transcript data using pandas operations.
-    
-    Args:
-        df: DataFrame with word_segments as rows, containing columns: word, start, end
-        timestamp_numbers: Whether to add timestamps for numbers
-        
-    Returns:
-        Processed DataFrame with normalized words and adjusted timestamps
-    """
-    # Normalize all words
-    normalizer = get_normalizer()
-    df['word-norm'] = df['word'].apply(normalizer)
-    
-    # Remove words with empty word-norm
-    df = df[df['word-norm'].astype(bool)]
-    
-    if timestamp_numbers:
-        offset = 0.01
-        # Create helper columns for previous and next row values
-        df['prev_end'] = df['end'].shift(1)
-        df['next_start'] = df['start'].shift(-1)
-        
-        # Add timestamps for numbers without start times
-        mask = df['start'].isna() & df['word-norm'].str.isdigit()
-        
-        # Handle first word case
-        first_word_mask = mask & (df.index == 0) & df['next_start'].notna()
-        df.loc[first_word_mask & (df['next_start'] < 4 * offset), 'start'] = df['next_start'] / 3
-        df.loc[first_word_mask & (df['next_start'] >= 4 * offset), 'start'] = df['next_start'] - (2 * offset)
-        df.loc[first_word_mask, 'end'] = df['start'] + offset
-        
-        # Handle last word case
-        last_word_mask = mask & (df.index == len(df) - 1) & df['prev_end'].notna()
-        df.loc[last_word_mask, 'start'] = df['prev_end'] + offset
-        df.loc[last_word_mask, 'end'] = df['start'] + offset
-        
-        # Handle middle cases
-        middle_mask = mask & df['next_start'].notna() & df['prev_end'].notna()
-        gap = df['next_start'] - df['prev_end']
-        
-        small_gap_mask = middle_mask & (gap < 4 * offset)
-        df.loc[small_gap_mask, 'start'] = df['prev_end'] + gap / 3
-        df.loc[small_gap_mask, 'end'] = df['start'] + gap / 3
-        
-        large_gap_mask = middle_mask & (gap >= 4 * offset)
-        df.loc[large_gap_mask, 'start'] = df['prev_end'] + offset
-        df.loc[large_gap_mask, 'end'] = df['start'] + offset
-        
-        # Clean up helper columns
-        df = df.drop(['prev_end', 'next_start'], axis=1)
-    
-    # Remove rows without start times
-    df = df[df['start'].notna()]
-    
-    # Break multi-words after normalization
-    multi_word_mask = df['word-norm'].str.contains(' ')
-    single_words = df[~multi_word_mask]
-    
-    # Process multi-words
-    multi_words = df[multi_word_mask].copy()
-    broken_words = []
-    
-    for _, row in multi_words.iterrows():
-        word_parts = row['word-norm'].split(' ')
-        word_duration = row['end'] - row['start']
-        word_duration_per_part = word_duration / len(word_parts)
-        
-        for idx, part in enumerate(word_parts):
-            new_row = row.copy()
-            new_row['word-norm'] = part
-            new_row['start'] = row['start'] + idx * word_duration_per_part
-            new_row['end'] = row['start'] + (idx + 1) * word_duration_per_part
-            new_row['broken'] = True
-            broken_words.append(new_row)
-    
-    # Combine single words with broken multi-words
-    if broken_words:
-        broken_df = pd.DataFrame(broken_words)
-        df = pd.concat([single_words, broken_df], ignore_index=True)
-    else:
-        df = single_words
-    
-    # Sort by start time
-    df = df.sort_values('start', na_position='first')
-    
-    return df 
-
-
-def post_process_human_transcription(transcript: dict) -> dict:
-    """
-    Post-process the human transcription to remove underscores in abbreviations.
-    """
-    return {
-        "word_segments": [
-            {
-                **item,
-                "word": (
-                    item["word"].replace("_", "")
-                    if "_" in item["word"] and item["word"][0].isupper()
-                    else item["word"]
-                ),
-            }
-            for item in transcript.pop("word_segments")
-        ],
-        **transcript,
-    }
 
 # %% [markdown]
 # ## Load all transcripts
@@ -167,9 +59,7 @@ def post_process_human_transcription(transcript: dict) -> dict:
 # Note: AWS and AssemblyAI are run with diarization, so should have speaker labels that we are not loading. 
 
 # %%
-out = Path("/data/transcripts/ami/out")
-
-def load_all(out, split="train"):
+def load_all(out=OUT_DIR, split="train"):
     splits = get_splits()
     dfs = []
     session_dirs = []
@@ -194,10 +84,10 @@ def load_all(out, split="train"):
 splits = get_splits()
 session_files = []
 for session_id in splits["train"]:
-    fn = Path("/data/transcripts/ami/out") / session_id / "xscript_noise1.feather"
+    fn = OUT_DIR / session_id / "xscript_noise1.feather"
     if fn.exists():
         session_files.append(fn)
-    fn = Path("/data/transcripts/ami/out") / session_id / "xscript_noise2.feather"
+    fn = OUT_DIR / session_id / "xscript_noise2.feather"
     if fn.exists():
         session_files.append(fn)
 print(len(session_files))
@@ -290,7 +180,7 @@ def get_sum_df(df, noise=None):
         sumdf = df.groupby(["snr", "noise", "transcriber"]).agg(**aggers).reset_index()
     print(f"Num sessions: {sumdf.N.min()}")
     sumdf.transcriber = sumdf.transcriber.replace(XSCRIBER_MAP)
-    sumdf.rename(columns={"transcriber": "Transcriber"}, inplace=True)
+    sumdf = sumdf.rename(columns={"transcriber": "Transcriber"})
     sumdf.loc[:, ["ci_wor", "ci_ins", "ci_del", "ci_sub"]] *= 1.96
     return sumdf
 
@@ -389,7 +279,7 @@ vals = []
 for metric in metrics:
     office = wdf.loc[(wdf.noise=="noise2"), ["session_id", "snr", "transcriber"]+metrics]
     music = wdf.loc[(wdf.noise=="noise1"), ["session_id", "snr", "transcriber"]+metrics]
-    tmpdf = office.join(music.set_index(icols), on=icols, lsuffix="_office", rsuffix="_music").dropna()
+    tmpdf = office.merge(music, on=icols, suffixes=("_office", "_music")).dropna()
     for snr in [-20, -15, -10, -5, 0, 5, 10, 15, 20]:
         for transcriber in XSCRIBER_MAP.keys():
             tmp2df = tmpdf.loc[(tmpdf.snr == snr) & (tmpdf.transcriber == transcriber)]
@@ -414,7 +304,7 @@ for noise in NOISE_MAP.keys():
         for transcriber in XSCRIBER_MAP.keys():
             inf = wdf.loc[idx & (wdf.snr==float("inf")) & (wdf.transcriber==transcriber), ["session_id"] + metrics]
             s20 = wdf.loc[idx & (wdf.snr==float("20")) & (wdf.transcriber==transcriber), ["session_id"] + metrics]
-            tmpdf = inf.join(s20.set_index("session_id"), on="session_id", lsuffix="_inf", rsuffix="_s20").dropna()
+            tmpdf = inf.merge(s20, on="session_id", suffixes=("_inf", "_s20")).dropna()
             inf_vals, s20_vals = tmpdf[f"{metric}_inf"], tmpdf[f"{metric}_s20"]
             res = stats.ttest_rel(inf_vals, s20_vals)
             vals.append({"Noise type": NOISE_MAP[noise], 
@@ -468,6 +358,9 @@ xscribers_tdf = pd.DataFrame(vals)
 ps = (inf20_tdf["p-value-unc"].tolist() 
       + office_music_tdf["p-value-unc"].tolist() 
       + xscribers_tdf["p-value-unc"].tolist())
+# Paired tests on identical values (e.g. a metric that is 0 for every session) give NaN p-values,
+# which false_discovery_control rejects. There is no evidence of a difference in that case, so use p=1.
+ps = np.nan_to_num(np.asarray(ps, dtype=float), nan=1.0)
 ps_adjusted = stats.false_discovery_control(ps, method="by")
 start, n = 0, len(inf20_tdf)
 inf20_tdf["p-value"] = ps_adjusted[start:start + n]
@@ -584,31 +477,66 @@ for metric, tdf in xscribers_tdf.groupby("Metric"):
 # %% [markdown]
 # ## ASR timestamp analysis
 
+# %% [markdown]
+# Word timestamp differences ("jitter") between the human reference and each ASR transcript.
+# For each session file, SNR, and ASR, align the normalized word sequences with jiwer and, for every
+# run of consecutive matching words ("equal" chunk), record the ASR minus reference start time of each
+# matched word pair, along with the length of the run it belongs to.
+
 # %%
-jitter_files = []
-for noise in ["noise1", "noise2"]:
-    pth = Path("/data/transcripts/ami/jitters/") / noise
-    jitter_files += pth.glob("*.feather")
+def compute_jitter_from_file(fn, normalizer):
+    df = pd.read_feather(fn)
+    noisefn = Path(fn).stem.split("_")[1]
+    session_id = df.session_id.iloc[0]
+    rows = []
 
-dfs = []
-for pth in jitter_files:
-    tmpdf = pd.read_feather(pth)
-    if len(tmpdf) == 0:
-        print(f"File {pth} is empty.")
-        continue
-    tmpdf["session_id"] = pth.stem
-    dfs.append(tmpdf)
+    def norm_words(sub):
+        if len(sub) == 0:
+            return sub
+        # Normalize in stored order (missing-time filling relies on neighbors), then sort by time
+        sub = normalize_xscript(sub.reset_index(drop=True), normalizer)
+        if len(sub) == 0:
+            return sub
+        return sub.sort_values("start_time", kind="stable").reset_index(drop=True)
 
-jitdf = pd.concat(dfs)
+    for snr in df.snr.unique():
+        snr_df = df.loc[df.snr == snr]
+        ref = norm_words(snr_df.loc[snr_df.transcriber == "hum"])
+        if len(ref) == 0:
+            continue
+        for xscriber in XSCRIBER_MAP.keys():
+            hyp = norm_words(snr_df.loc[snr_df.transcriber == xscriber])
+            if len(hyp) == 0:
+                continue
+            align = jiwer.process_words(" ".join(ref.word_norm), " ".join(hyp.word_norm))
+            # word_norm is a single non-empty token, so jiwer's default transform (split on
+            # whitespace) must index one-to-one with the DataFrame rows.
+            assert len(align.references[0]) == len(ref) and len(align.hypotheses[0]) == len(hyp)
+            ref_start = ref.start_time.to_numpy()
+            hyp_start = hyp.start_time.to_numpy()
+            for chunk in align.alignments[0]:
+                if chunk.type != "equal":
+                    continue
+                length = chunk.ref_end_idx - chunk.ref_start_idx
+                jit = hyp_start[chunk.hyp_start_idx:chunk.hyp_end_idx] - ref_start[chunk.ref_start_idx:chunk.ref_end_idx]
+                rows.extend({"session_id": session_id,
+                             "noise_file": noisefn,
+                             "snr": snr,
+                             "transcriber": xscriber,
+                             "length": length,
+                             "jitter": j} for j in jit)
+    return rows
+
+
+results = Parallel(n_jobs=-1, verbose=1)(
+    delayed(compute_jitter_from_file)(fn, normalizer)
+    for fn in session_files
+)
+jitdf = pd.DataFrame([row for sublist in results for row in sublist])
 jitdf["delta_ms"] = jitdf.jitter * 1000
-del dfs
+del results
+print(jitdf.shape)
 jitdf.head()
-
-# %%
-XSCRIBER_MAP
-
-# %%
-
 
 # %% [markdown]
 # ## Jitter histogram plot
@@ -642,7 +570,6 @@ for snr_cnt, snr in enumerate(snrs):
         for xscriber_cnt, xscriber in enumerate(XSCRIBER_MAP.keys()):
             if len_thresh == 0:
                 print(f"{snr=}, {label=}, {xscriber=}, {titles[xscriber_cnt*ncols + snr_cnt]}")
-            title_cnt += 1
             x = jitdf.loc[(jitdf.transcriber == xscriber) & noise_idx & snr_idx & len_idx, "jitter"].abs()
             fig.add_trace(go.Histogram(x=np.clip(x, 0, DELTA_THRESH), name=label, marker_color=cmap[len_cnt], #opacity=0.75, 
                                        autobinx=False, xbins=xbins, showlegend=(snr_cnt==0)&(xscriber_cnt==0)), 
@@ -681,6 +608,7 @@ fig.write_image(FIGDIR / "jitter_hist.png", scale=3)
 #fig.show()
 
 # %%
+noise = "noise2"
 DELTA_THRESH = 5
 xbins = dict(start=-DELTA_THRESH-0.1, end=DELTA_THRESH+0.1, size=0.1)
 noise_idx = jitdf.noise_file == noise
@@ -700,7 +628,6 @@ for snr_cnt, snr in enumerate(snrs):
         for xscriber_cnt, xscriber in enumerate(XSCRIBER_MAP.keys()):
             if len_thresh == 0:
                 print(f"{snr=}, {label=}, {xscriber=}, {titles[xscriber_cnt*ncols + snr_cnt]}")
-            title_cnt += 1
             x = jitdf.loc[(jitdf.transcriber == xscriber) & noise_idx & snr_idx & len_idx, "jitter"]
             fig.add_trace(go.Histogram(x=np.clip(x, -DELTA_THRESH, DELTA_THRESH), name=label, marker_color=cmap[len_cnt], 
                                        autobinx=False, xbins=xbins, showlegend=(snr_cnt==0)&(xscriber_cnt==0)), 
@@ -738,95 +665,43 @@ fig.write_image(FIGDIR / "jitter_hist_neg.png", scale=3)
 
 # %% [markdown]
 # ## Jitter distribution table
-# Show 99% quantiles for each ASR at various consecutive word-match thresholds.
+# 95% and 99% quantiles of |jitter| for each ASR at various consecutive word-match thresholds, for the
+# original audio (SNR inf) and with each noise type at SNR 0.
 
 # %%
-jitdf.jitter.describe()
-
-# %%
-jitdf.jitter.clip(-5, 5).hist(bins=500)
-
-# %%
-jitdf["consec_match"] = "0"
-for thresh in [25, 50, 100]:
-    jitdf.loc[jitdf.length > thresh, "consec_match"] = f"{thresh}"
-jitdf["consec_match_bins"] = pd.cut(jitdf.length, bins=[0, 25, 50, 100], labels=["0-24", "25-49", "50-100"], right=False)
-jitdf.head()
-
-# %%
-aggers = {"Q95": ("jitter", lambda x: x.quantile(0.95)), 
-          "Q99": ("jitter", lambda x: x.quantile(0.99)), 
-          "N": ("jitter", "count")}
-jitdf.loc[jitdf.snr==float("inf")].groupby([ "consec_match", "transcriber"], observed=True).agg(**aggers)
-
-# %%
-jitdf.loc[jitdf.snr==float("inf")].groupby(["transcriber", "consec_match_bins"], observed=True).agg(**aggers)
-
-# %%
-
-
-# %%
-icols = ["session_id", "snr", "transcriber"]
-snrs = wdf.snr.unique()
-
+matlens = [0, 25, 50]
+# SNR inf audio is identical for both noise files, so only use one copy of it to avoid double counting.
+conditions = [("Original", "noise2", float("inf"))] + [(f"{NOISE_MAP[n]}, SNR 0", n, 0) for n in ["noise2", "noise1"]]
 vals = []
-for thresh in [0, 25, 50, 100]:
-    office = jitdf.loc[(jitdf.noise_file=="noise2"), icols]
-    music = jitdf.loc[(jitdf.noise_file=="noise1"), icols]
-    tmpdf = office.join(music.set_index(icols), on=icols, lsuffix="_office", rsuffix="_music").dropna()
-    for snr in [-20, -15, -10, -5, 0, 5, 10, 15, 20]:
-        for transcriber in XSCRIBER_MAP.keys():
-            tmp2df = tmpdf.loc[(tmpdf.snr == snr) & (tmpdf.transcriber == transcriber)]
-            ovals, mvals = tmp2df[f"{metric}_office"].values, tmp2df[f"{metric}_music"].values
-            res = stats.ttest_rel(ovals, mvals)
-            vals.append({"metric": metric,
-                         "SNR": snr,
-                         "Transcriber": XSCRIBER_MAP[transcriber],
-                         "Mean Office": np.mean(ovals), 
-                         "Mean Music": np.mean(mvals), 
-                         "t-statistic": res.statistic, 
-                         "p-value-unc": res.pvalue, 
-                         "df": res.df})
-office_music_tdf = pd.DataFrame(vals)
+for cond_label, noise_file, snr in conditions:
+    cond_idx = (jitdf.noise_file == noise_file) & (jitdf.snr == snr)
+    for len_thresh in matlens:
+        len_idx = jitdf.length > len_thresh
+        for xscriber in XSCRIBER_MAP.keys():
+            x = jitdf.loc[cond_idx & len_idx & (jitdf.transcriber == xscriber), "jitter"].abs()
+            vals.append({"Condition": cond_label,
+                         "Matches": f">{len_thresh}" if len_thresh > 0 else "All",
+                         "Transcriber": XSCRIBER_MAP[xscriber],
+                         "95% Quantile": x.quantile(0.95),
+                         "99% Quantile": x.quantile(0.99),
+                         "N": len(x)})
+jitq_df = pd.DataFrame(vals)
 
-# %%
-cols = ["Transcriber", "# Matches" "99th Quantile", "N"]
-for xscriber_cnt, xscriber in :
-    for label, show_snrs in show_snrs_list.items():
-        tmpdf = tdf.loc[tdf.SNR.isin(show_snrs)].copy().sort_values(["Noise type", "SNR"])
-        tmpdf.loc[tmpdf["Transcriber1"] == tmpdf["Transcriber1"].shift(1), "Transcriber1"] = " "
-        tmpdf.loc[tmpdf["Transcriber2"] == tmpdf["Transcriber2"].shift(1), "Transcriber2"] = " "
-        tmpdf.SNR = tmpdf.SNR.astype('object')
-        tmpdf.SNR = tmpdf.SNR.map(lambda x: f"{x:0.0f}")
-        tmpdf.loc[tmpdf["Noise type"] == tmpdf["Noise type"].shift(1), "Noise type"] = " "
-        tmpdf.loc[tmpdf["SNR"] == tmpdf["SNR"].shift(1), "SNR"] = " "
-        
-        tab = tmpdf[cols].to_latex(index=False, formatters={"t-statistic": lambda x: f"{x:0.2f}", 
-                                                            "p-value": pformat})
-        inserts = get_subrules(tab, 6, 3, len(cols))
-        inserts = get_subrules(tab, 6*len(show_snrs), 2, len(cols), inserts)
-        tab = add_subrules(tab, inserts)
-        with open(FIGDIR / f"xscribers_{label}_{metric.lower()}.tex", "wt") as fp:
-            fp.write(tab)
-
-# %%
-cols = ["Noise type", "Transcriber", "# Matches" "99th Quantile", "N"]
-
-for noise, 
-for xscriber, gdf in .groupby("Metric"):
-    for label, show_snrs in show_snrs_list.items():
-        tmpdf = tdf.loc[tdf.SNR.isin(show_snrs)].copy().sort_values(["Noise type", "SNR"])
-        tmpdf.loc[tmpdf["Transcriber1"] == tmpdf["Transcriber1"].shift(1), "Transcriber1"] = " "
-        tmpdf.loc[tmpdf["Transcriber2"] == tmpdf["Transcriber2"].shift(1), "Transcriber2"] = " "
-        tmpdf.SNR = tmpdf.SNR.astype('object')
-        tmpdf.SNR = tmpdf.SNR.map(lambda x: f"{x:0.0f}")
-        tmpdf.loc[tmpdf["Noise type"] == tmpdf["Noise type"].shift(1), "Noise type"] = " "
-        tmpdf.loc[tmpdf["SNR"] == tmpdf["SNR"].shift(1), "SNR"] = " "
-        
-        tab = tmpdf[cols].to_latex(index=False, formatters={"t-statistic": lambda x: f"{x:0.2f}", 
-                                                            "p-value": pformat})
-        inserts = get_subrules(tab, 6, 3, len(cols))
-        inserts = get_subrules(tab, 6*len(show_snrs), 2, len(cols), inserts)
-        tab = add_subrules(tab, inserts)
-        with open(FIGDIR / f"xscribers_{label}_{metric.lower()}.tex", "wt") as fp:
-            fp.write(tab)
+cols = ["Condition", "Matches", "Transcriber", "95% Quantile", "99% Quantile", "N"]
+tmpdf = jitq_df.copy()
+# don't show duplicated conditions and match thresholds in consecutive rows
+tmpdf.loc[tmpdf["Matches"] == tmpdf["Matches"].shift(1), "Matches"] = " "
+tmpdf.loc[tmpdf["Condition"] == tmpdf["Condition"].shift(1), "Condition"] = " "
+# escape "%" for LaTeX; quantiles are in seconds
+tmpdf = tmpdf[cols].rename(columns={"95% Quantile": "95\\% Quantile (s)", "99% Quantile": "99\\% Quantile (s)"})
+tab = tmpdf.to_latex(index=False,
+                     formatters={"95\\% Quantile (s)": lambda x: f"{x:0.3f}",
+                                 "99\\% Quantile (s)": lambda x: f"{x:0.3f}",
+                                 "N": lambda x: f"{x:d}"})
+n_xs = len(XSCRIBER_MAP)
+inserts = get_subrules(tab, n_xs, 2, len(cols))
+inserts = get_subrules(tab, n_xs * len(matlens), 1, len(cols), inserts)
+tab = add_subrules(tab, inserts)
+with open(FIGDIR / "jitter_quantiles.tex", "wt") as fp:
+    fp.write(tab)
+jitq_df
