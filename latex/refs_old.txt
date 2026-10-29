@@ -1,0 +1,822 @@
+
+@Article{Passie2002,
+   Author="Passie, T.  and Seifert, J.  and Schneider, U.  and Emrich, H. M. ",
+   Title="{{T}he pharmacology of psilocybin}",
+   Journal="Addict Biol",
+   Year="2002",
+   Volume="7",
+   Number="4",
+   Pages="357--364",
+   Month="Oct"
+}
+
+@Article{Griffiths2016,
+   Author="Griffiths, R. R.  and Johnson, M. W.  and Carducci, M. A.  and Umbricht, A.  and Richards, W. A.  and Richards, B. D.  and Cosimano, M. P.  and Klinedinst, M. A. ",
+   Title="{{P}silocybin produces substantial and sustained decreases in depression and anxiety in patients with life-threatening cancer: {A} randomized double-blind trial}",
+   Journal="J Psychopharmacol",
+   Year="2016",
+   Volume="30",
+   Number="12",
+   Pages="1181--1197",
+   Month="12"
+}
+
+@Article{Ross2016,
+   Author="Ross, S.  and Bossis, A.  and Guss, J.  and Agin-Liebes, G.  and Malone, T.  and Cohen, B.  and Mennenga, S. E.  and Belser, A.  and Kalliontzi, K.  and Babb, J.  and Su, Z.  and Corby, P.  and Schmidt, B. L. ",
+   Title="{{R}apid and sustained symptom reduction following psilocybin treatment for anxiety and depression in patients with life-threatening cancer: a randomized controlled trial}",
+   Journal="J Psychopharmacol",
+   Year="2016",
+   Volume="30",
+   Number="12",
+   Pages="1165--1180",
+   Month="12"
+}
+
+@Article{Grob2011,
+   Author="Grob, C. S.  and Danforth, A. L.  and Chopra, G. S.  and Hagerty, M.  and McKay, C. R.  and Halberstadt, A. L.  and Greer, G. R. ",
+   Title="{{P}ilot study of psilocybin treatment for anxiety in patients with advanced-stage cancer}",
+   Journal="Arch Gen Psychiatry",
+   Year="2011",
+   Volume="68",
+   Number="1",
+   Pages="71--78",
+   Month="Jan"
+}
+
+@Article{Carhart-Harris2021,
+   Author="Carhart-Harris, R.  and Giribaldi, B.  and Watts, R.  and Baker-Jones, M.  and Murphy-Beiner, A.  and Murphy, R.  and Martell, J.  and Blemings, A.  and Erritzoe, D.  and Nutt, D. J. ",
+   Title="{{T}rial of {P}silocybin versus {E}scitalopram for {D}epression}",
+   Journal="N Engl J Med",
+   Year="2021",
+   Volume="384",
+   Number="15",
+   Pages="1402--1411",
+   Month="04"
+}
+
+@Article{Davis2021,
+   Author="Davis, A. K.  and Barrett, F. S.  and May, D. G.  and Cosimano, M. P.  and Sepeda, N. D.  and Johnson, M. W.  and Finan, P. H.  and Griffiths, R. R. ",
+   Title="{{E}ffects of {P}silocybin-{A}ssisted {T}herapy on {M}ajor {D}epressive {D}isorder: {A} {R}andomized {C}linical {T}rial}",
+   Journal="JAMA Psychiatry",
+   Year="2021",
+   Volume="78",
+   Number="5",
+   Pages="481--489",
+   Month="05"
+}
+
+@Article{Carhart-Harris2016,
+   Author="Carhart-Harris, R. L.  and Bolstridge, M.  and Rucker, J.  and Day, C. M.  and Erritzoe, D.  and Kaelen, M.  and Bloomfield, M.  and Rickard, J. A.  and Forbes, B.  and Feilding, A.  and Taylor, D.  and Pilling, S.  and Curran, V. H.  and Nutt, D. J. ",
+   Title="{{P}silocybin with psychological support for treatment-resistant depression: an open-label feasibility study}",
+   Journal="Lancet Psychiatry",
+   Year="2016",
+   Volume="3",
+   Number="7",
+   Pages="619--627",
+   Month="Jul"
+}
+
+@Article{STAR*D,
+   Author="Rush, A. J.  and Trivedi, M. H.  and Wisniewski, S. R.  and Nierenberg, A. A.  and Stewart, J. W.  and Warden, D.  and Niederehe, G.  and Thase, M. E.  and Lavori, P. W.  and Lebowitz, B. D.  and McGrath, P. J.  and Rosenbaum, J. F.  and Sackeim, H. A.  and Kupfer, D. J.  and Luther, J.  and Fava, M. ",
+   Title="{{A}cute and longer-term outcomes in depressed outpatients requiring one or several treatment steps: a {S}{T}{A}{R}*{D} report}",
+   Journal="Am J Psychiatry",
+   Year="2006",
+   Volume="163",
+   Number="11",
+   Pages="1905--1917",
+   Month="Nov"
+}
+
+@Article{Otte2016,
+   Author="Otte, C.  and Gold, S. M.  and Penninx, B. W.  and Pariante, C. M.  and Etkin, A.  and Fava, M.  and Mohr, D. C.  and Schatzberg, A. F. ",
+   Title="{{M}ajor depressive disorder}",
+   Journal="Nat Rev Dis Primers",
+   Year="2016",
+   Volume="2",
+   Pages="16065",
+   Month="09"
+}
+
+@Article{Greenberg2021,
+   Author="Greenberg, P. E.  and Fournier, A. A.  and Sisitsky, T.  and Simes, M.  and Berman, R.  and Koenigsberg, S. H.  and Kessler, R. C. ",
+   Title="{{T}he {E}conomic {B}urden of {A}dults with {M}ajor {D}epressive {D}isorder in the {U}nited {S}tates (2010 and 2018)}",
+   Journal="Pharmacoeconomics",
+   Year="2021",
+   Volume="39",
+   Number="6",
+   Pages="653--665",
+   Month="06"
+}
+
+@article{russell1980circumplex,
+  added-at = {2011-01-16T19:33:23.000+0100},
+  author = {Russell, J.A.},
+  issn = {0022-3514},
+  journal = {Journal of personality and social psychology},
+  number = 6,
+  pages = {1161--1178},
+  title = {{A circumplex model of affect}},
+  volume = 39,
+  year = 1980
+}
+
+@article{Roseman2019ebi,
+author = {Roseman, L and Haijen, E and Idialu-Ikato, K and Kaelen, M and Watts, R and Carhart-Harris, R},
+doi = {10.1177/0269881119855974},
+journal = {Journal of Psychopharmacology},
+pages = {026988111985597--026988111985597},
+title = {Emotional breakthrough and psychedelics: Validation of the Emotional Breakthrough Inventory},
+url = {http://dx.doi.org/10.1177/0269881119855974},
+year = {2019}
+}
+
+@article{MontgomeryAsberg1979,
+author = {Montgomery, S.A. and Asberg, Marie},
+year = {1979},
+month = {05},
+pages = {382-389},
+title = {A New Depression Scale Designed to be Sensitive to Change},
+volume = {134},
+journal = {Br J Psychiatry}
+}
+
+@article{Guy2022,
+  title={Single-dose psilocybin for a treatment-resistant episode of major depression},
+  author={Goodwin, Guy M and Aaronson, Scott T and Alvarez, Oscar and Arden, Peter C and Baker, Annie and Bennett, James C and Bird, Catherine and Blom, Renske E and Brennan, Christine and Brusch, Donna and others},
+  journal={New England Journal of Medicine},
+  volume={387},
+  number={18},
+  pages={1637--1648},
+  year={2022},
+  publisher={Mass Medical Soc}
+}
+
+@article{breiman_random_2001,
+	title = {Random {Forests}},
+	volume = {45},
+	issn = {1573-0565},
+	url = {https://doi.org/10.1023/A:1010933404324},
+	doi = {10.1023/A:1010933404324},
+	number = {1},
+	journal = {Machine Learning},
+	author = {Breiman, Leo},
+	month = oct,
+	year = {2001},
+	pages = {5--32},
+}
+
+@misc{mikolov_distributed_2013,
+  doi = {10.48550/ARXIV.1310.4546},
+  url = {https://arxiv.org/abs/1310.4546},
+  author = {Mikolov, Tomas and Sutskever, Ilya and Chen, Kai and Corrado, Greg and Dean, Jeffrey},
+  keywords = {Computation and Language (cs.CL), Machine Learning (cs.LG), Machine Learning (stat.ML), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  title = {Distributed Representations of Words and Phrases and their Compositionality},
+  publisher = {arXiv},
+  year = {2013},
+  copyright = {arXiv.org perpetual, non-exclusive license}
+}
+
+@misc{vaswani_attention_2017,
+  doi = {10.48550/ARXIV.1706.03762},
+  url = {https://arxiv.org/abs/1706.03762},
+  author = {Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and Kaiser, Lukasz and Polosukhin, Illia},
+  keywords = {Computation and Language (cs.CL), Machine Learning (cs.LG), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  title = {Attention Is All You Need},
+  publisher = {arXiv},
+  year = {2017},
+  copyright = {arXiv.org perpetual, non-exclusive license}
+}
+
+@misc{devlin_bert_2018,
+  doi = {10.48550/ARXIV.1810.04805},
+  url = {https://arxiv.org/abs/1810.04805},
+  author = {Devlin, Jacob and Chang, Ming-Wei and Lee, Kenton and Toutanova, Kristina},
+  keywords = {Computation and Language (cs.CL), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  title = {BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding},
+  publisher = {arXiv},
+  year = {2018},
+  copyright = {arXiv.org perpetual, non-exclusive license}
+}
+
+@article{brown_language_2020,
+  title={Language models are few-shot learners},
+  author={Brown, Tom and Mann, Benjamin and Ryder, Nick and Subbiah, Melanie and Kaplan, Jared D and Dhariwal, Prafulla and Neelakantan, Arvind and Shyam, Pranav and Sastry, Girish and Askell, Amanda and others},
+  journal={Advances in neural information processing systems},
+  volume={33},
+  pages={1877--1901},
+  year={2020}
+}
+
+@article{coravos_developing_2019,
+	title = {Developing and adopting safe and effective digital biomarkers to improve patient outcomes},
+	volume = {2},
+	issn = {2398-6352},
+	url = {http://www.nature.com/articles/s41746-019-0090-4},
+	doi = {10.1038/s41746-019-0090-4},
+	language = {en},
+	number = {1},
+	urldate = {2022-06-23},
+	journal = {npj Digital Medicine},
+	author = {Coravos, Andrea and Khozin, Sean and Mandl, Kenneth D.},
+	month = dec,
+	year = {2019},
+	pages = {14},
+	file = {Full Text:/Users/gregryslik/Zotero/storage/JISAJQ4A/Coravos et al. - 2019 - Developing and adopting safe and effective digital.pdf:application/pdf},
+}
+
+@article{jacobson_digital_2019,
+	title = {Digital biomarkers of mood disorders and symptom change},
+	volume = {2},
+	issn = {2398-6352},
+	url = {http://www.nature.com/articles/s41746-019-0078-0},
+	doi = {10.1038/s41746-019-0078-0},
+	language = {en},
+	number = {1},
+	urldate = {2022-06-23},
+	journal = {npj Digital Medicine},
+	author = {Jacobson, Nicholas C. and Weingarden, Hilary and Wilhelm, Sabine},
+	month = dec,
+	year = {2019},
+	pages = {3},
+	file = {Full Text:/Users/gregryslik/Zotero/storage/GYDLK5TI/Jacobson et al. - 2019 - Digital biomarkers of mood disorders and symptom c.pdf:application/pdf},
+}
+
+
+@article{cavedoni_digital_2020,
+	title = {Digital {Biomarkers} for the {Early} {Detection} of {Mild} {Cognitive} {Impairment}: {Artificial} {Intelligence} {Meets} {Virtual} {Reality}},
+	volume = {14},
+	issn = {1662-5161},
+	shorttitle = {Digital {Biomarkers} for the {Early} {Detection} of {Mild} {Cognitive} {Impairment}},
+	url = {https://www.frontiersin.org/article/10.3389/fnhum.2020.00245/full},
+	doi = {10.3389/fnhum.2020.00245},
+	urldate = {2022-06-23},
+	journal = {Frontiers in Human Neuroscience},
+	author = {Cavedoni, Silvia and Chirico, Alice and Pedroli, Elisa and Cipresso, Pietro and Riva, Giuseppe},
+	month = jul,
+	year = {2020},
+	pages = {245},
+	file = {Full Text:/Users/gregryslik/Zotero/storage/LSFBHLWM/Cavedoni et al. - 2020 - Digital Biomarkers for the Early Detection of Mild.pdf:application/pdf},
+}
+
+@article{davis_effects_2021,
+	title = {Effects of {Psilocybin}-{Assisted} {Therapy} on {Major} {Depressive} {Disorder}: {A} {Randomized} {Clinical} {Trial}},
+	volume = {78},
+	issn = {2168-622X},
+	shorttitle = {Effects of {Psilocybin}-{Assisted} {Therapy} on {Major} {Depressive} {Disorder}},
+	url = {https://jamanetwork.com/journals/jamapsychiatry/fullarticle/2772630},
+	doi = {10.1001/jamapsychiatry.2020.3285},
+	language = {en},
+	number = {5},
+	urldate = {2022-06-23},
+	journal = {JAMA Psychiatry},
+	author = {Davis, Alan K. and Barrett, Frederick S. and May, Darrick G. and Cosimano, Mary P. and Sepeda, Nathan D. and Johnson, Matthew W. and Finan, Patrick H. and Griffiths, Roland R.},
+	month = may,
+	year = {2021},
+	pages = {481},
+	file = {Full Text:/Users/gregryslik/Zotero/storage/Y3BMQ7WJ/Davis et al. - 2021 - Effects of Psilocybin-Assisted Therapy on Major De.pdf:application/pdf},
+}
+
+@article{muttoni_classical_2019,
+	title = {Classical psychedelics for the treatment of depression and anxiety: {A} systematic review},
+	volume = {258},
+	issn = {01650327},
+	shorttitle = {Classical psychedelics for the treatment of depression and anxiety},
+	url = {https://linkinghub.elsevier.com/retrieve/pii/S0165032719309127},
+	doi = {10.1016/j.jad.2019.07.076},
+	language = {en},
+	urldate = {2022-06-23},
+	journal = {Journal of Affective Disorders},
+	author = {Muttoni, Silvia and Ardissino, Maddalena and John, Christopher},
+	month = nov,
+	year = {2019},
+	pages = {11--24},
+}
+
+@article{palhano-fontes_rapid_2019,
+	title = {Rapid antidepressant effects of the psychedelic ayahuasca in treatment-resistant depression: a randomized placebo-controlled trial},
+	volume = {49},
+	issn = {0033-2917, 1469-8978},
+	shorttitle = {Rapid antidepressant effects of the psychedelic ayahuasca in treatment-resistant depression},
+	url = {https://www.cambridge.org/core/product/identifier/S0033291718001356/type/journal_article},
+	doi = {10.1017/S0033291718001356},
+	language = {en},
+	number = {4},
+	urldate = {2022-06-24},
+	journal = {Psychological Medicine},
+	author = {Palhano-Fontes, Fernanda and Barreto, Dayanna and Onias, Heloisa and Andrade, Katia C. and Novaes, Morgana M. and Pessoa, Jessica A. and Mota-Rolim, Sergio A. and Osório, Flávia L. and Sanches, Rafael and dos Santos, Rafael G. and Tófoli, Luís Fernando and de Oliveira Silveira, Gabriela and Yonamine, Mauricio and Riba, Jordi and Santos, Francisco R. and Silva-Junior, Antonio A. and Alchieri, João C. and Galvão-Coelho, Nicole L. and Lobão-Soares, Bruno and Hallak, Jaime E. C. and Arcoverde, Emerson and Maia-de-Oliveira, João P. and Araújo, Dráulio B.},
+	month = mar,
+	year = {2019},
+	pages = {655--663},
+	file = {Full Text:/Users/gregryslik/Zotero/storage/DDSMRYK5/Palhano-Fontes et al. - 2019 - Rapid antidepressant effects of the psychedelic ay.pdf:application/pdf},
+}
+
+@article{romeo_efficacy_2020,
+	title = {Efficacy of psychedelic treatments on depressive symptoms: {A} meta-analysis},
+	volume = {34},
+	issn = {0269-8811, 1461-7285},
+	shorttitle = {Efficacy of psychedelic treatments on depressive symptoms},
+	url = {http://journals.sagepub.com/doi/10.1177/0269881120919957},
+	doi = {10.1177/0269881120919957},
+	language = {en},
+	number = {10},
+	urldate = {2022-06-24},
+	journal = {Journal of Psychopharmacology},
+	author = {Romeo, Bruno and Karila, Laurent and Martelli, Catherine and Benyamina, Amine},
+	month = oct,
+	year = {2020},
+	pages = {1079--1085},
+}
+
+@article{carhart-harris_therapeutic_2017,
+	title = {The {Therapeutic} {Potential} of {Psychedelic} {Drugs}: {Past}, {Present}, and {Future}},
+	volume = {42},
+	issn = {0893-133X, 1740-634X},
+	shorttitle = {The {Therapeutic} {Potential} of {Psychedelic} {Drugs}},
+	url = {http://www.nature.com/articles/npp201784},
+	doi = {10.1038/npp.2017.84},
+	language = {en},
+	number = {11},
+	urldate = {2022-06-24},
+	journal = {Neuropsychopharmacology},
+	author = {Carhart-Harris, Robin L and Goodwin, Guy M},
+	month = oct,
+	year = {2017},
+	pages = {2105--2113},
+	file = {Full Text:/Users/gregryslik/Zotero/storage/8D2SBJZS/Carhart-Harris and Goodwin - 2017 - The Therapeutic Potential of Psychedelic Drugs Pa.pdf:application/pdf},
+}
+
+@inproceedings{BART-2020,
+    title = "{BART}: Denoising Sequence-to-Sequence Pre-training for Natural Language Generation, Translation, and Comprehension",
+    author = "Lewis, Mike  and
+      Liu, Yinhan  and
+      Goyal, Naman  and
+      Ghazvininejad, Marjan  and
+      Mohamed, Abdelrahman  and
+      Levy, Omer  and
+      Stoyanov, Veselin  and
+      Zettlemoyer, Luke",
+    booktitle = "Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics",
+    month = jul,
+    year = "2020",
+    address = "Online",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2020.acl-main.703",
+    doi = "10.18653/v1/2020.acl-main.703",
+    pages = "7871--7880",
+}
+
+@inproceedings{yin-etal-zeroshot-2019,
+    title = "Benchmarking Zero-shot Text Classification: Datasets, Evaluation and Entailment Approach",
+    author = "Yin, Wenpeng  and
+      Hay, Jamaal  and
+      Roth, Dan",
+    booktitle = "Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)",
+    month = nov,
+    year = "2019",
+    address = "Hong Kong, China",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/D19-1404",
+    doi = "10.18653/v1/D19-1404",
+    pages = "3914--3923"
+}
+
+@InProceedings{MNLI-2018,
+  author = "Williams, Adina
+            and Nangia, Nikita
+            and Bowman, Samuel",
+  title = "A Broad-Coverage Challenge Corpus for 
+           Sentence Understanding through Inference",
+  booktitle = "Proceedings of the 2018 Conference of 
+               the North American Chapter of the 
+               Association for Computational Linguistics:
+               Human Language Technologies, Volume 1 (Long
+               Papers)",
+  year = "2018",
+  publisher = "Association for Computational Linguistics",
+  pages = "1112--1122",
+  location = "New Orleans, Louisiana",
+  url = "http://aclweb.org/anthology/N18-1101"
+}
+
+@misc{wolf-huggingface-2019,
+  title={Huggingface's transformers: State-of-the-art natural language processing},
+  author={Wolf, Thomas and Debut, Lysandre and Sanh, Victor and Chaumond, Julien and Delangue, Clement and Moi, Anthony and Cistac, Pierric and Rault, Tim and Louf, R{\'e}mi and Funtowicz, Morgan and others},
+  journal={arXiv preprint arXiv:1910.03771},
+  year={2019}
+}
+
+@inproceedings{lewis_bart_2020,
+	address = {Online},
+	title = {{BART}: {Denoising} {Sequence}-to-{Sequence} {Pre}-training for {Natural} {Language} {Generation}, {Translation}, and {Comprehension}},
+	shorttitle = {{BART}},
+	url = {https://www.aclweb.org/anthology/2020.acl-main.703},
+	doi = {10.18653/v1/2020.acl-main.703},
+	language = {en},
+	urldate = {2022-07-12},
+	booktitle = {Proceedings of the 58th {Annual} {Meeting} of the {Association} for {Computational} {Linguistics}},
+	publisher = {Association for Computational Linguistics},
+	author = {Lewis, Mike and Liu, Yinhan and Goyal, Naman and Ghazvininejad, Marjan and Mohamed, Abdelrahman and Levy, Omer and Stoyanov, Veselin and Zettlemoyer, Luke},
+	year = {2020},
+	pages = {7871--7880},
+	file = {Full Text:/Users/gregryslik/Zotero/storage/V5VUQDGD/Lewis et al. - 2020 - BART Denoising Sequence-to-Sequence Pre-training .pdf:application/pdf},
+}
+
+@misc{yin2019benchmarking,
+  title={Benchmarking zero-shot text classification: Datasets, evaluation and entailment approach},
+  author={Yin, Wenpeng and Hay, Jamaal and Roth, Dan},
+  journal={arXiv preprint arXiv:1909.00161},
+  year={2019}
+}
+
+@InProceedings{N18-1101,
+  author = "Williams, Adina
+            and Nangia, Nikita
+            and Bowman, Samuel",
+  title = "A Broad-Coverage Challenge Corpus for 
+           Sentence Understanding through Inference",
+  booktitle = "Proceedings of the 2018 Conference of 
+               the North American Chapter of the 
+               Association for Computational Linguistics:
+               Human Language Technologies, Volume 1 (Long
+               Papers)",
+  year = "2018",
+  publisher = "Association for Computational Linguistics",
+  pages = "1112--1122",
+  location = "New Orleans, Louisiana",
+  url = "http://aclweb.org/anthology/N18-1101"
+}
+
+@ARTICLE{Tai2021,
+  AUTHOR={Tai, Sara J. and Nielson, Elizabeth M. and Lennard-Jones, Molly and Johanna Ajantaival, Riikka-Liisa and Winzer, Rachel and Richards, William A. and Reinholdt, Frederick and Richards, Brian D. and Gasser, Peter and Malievskaia, Ekaterina},   
+  TITLE={Development and Evaluation of a Therapist Training Program for Psilocybin Therapy for Treatment-Resistant Depression in Clinical Research},      
+  JOURNAL={Frontiers in Psychiatry},      
+  VOLUME={12},           
+  YEAR={2021},      
+  URL={https://www.frontiersin.org/articles/10.3389/fpsyt.2021.586682},       
+  DOI={10.3389/fpsyt.2021.586682},      
+  ISSN={1664-0640},   
+}
+
+@inproceedings{stasak16_interspeech,
+  author={Brian Stasak and Julien Epps and Nicholas Cummins and Roland Goecke},
+  title={{An Investigation of Emotional Speech in Depression Classification}},
+  year=2016,
+  booktitle={Proc. Interspeech 2016},
+  pages={485--489},
+  doi={10.21437/Interspeech.2016-867}
+}
+
+@article{Mrazek2014,
+author = {Mrazek, David A. and Hornberger, John C. and Altar, C. Anthony and Degtiar, Irina},
+title = {A Review of the Clinical, Economic, and Societal Burden of Treatment-Resistant Depression: 1996‚Äì2013},
+journal = {Psychiatric Services},
+volume = {65},
+number = {8},
+pages = {977-987},
+year = {2014},
+doi = {10.1176/appi.ps.201300059},
+    note ={PMID: 24789696},
+URL = {https://doi.org/10.1176/appi.ps.201300059},
+eprint = {https://doi.org/10.1176/appi.ps.201300059},
+}
+
+@article{Wiles2014,
+author = {Wiles, Nicola and Thomas, Laura and Abel, Anna and Barnes, Maria and Carroll, Fran and Ridgway, Nicola and Sherlock, Sofie and Turner, Nicholas and Button, Katherine and Odondi, Lang'o and Metcalfe, Chris and Owen-Smith, Amanda and Campbell, John and Garland, Anne and Hollinghurst, Sandra and Jerrom, Bill and Kessler, David and Kuyken, Willem and Morrison, Jill and Lewis, Glyn},
+year = {2014},
+month = {05},
+pages = {1-168},
+title = {Clinical effectiveness and cost-effectiveness of cognitive behavioural therapy as an adjunct to pharmacotherapy for treatment-resistant depression in primary care: The CoBalT randomised controlled trial},
+volume = {18},
+journal = {Health technology assessment (Winchester, England)},
+doi = {10.3310/hta18310}
+}
+
+@Article{Nemeroff2007,
+   Author="Nemeroff, C. B. ",
+   Title="{{P}revalence and management of treatment-resistant depression}",
+   Journal="J Clin Psychiatry",
+   Year="2007",
+   Volume="68 Suppl 8",
+   Pages="17--25"
+}
+
+@article{Rush2006,
+author = {Rush, Augustus and Trivedi, Madhukar and Wisniewski, Stephen and Nierenberg, Andrew and Stewart, Jonathan and Warden, Diane and Niederehe, George and Thase, Michael and Lavori, Philip and Lebowitz, Barry and McGrath, Patrick and Rosenbaum, Jerrold and Sackeim, Harold and Kupfer, David and Luther, James and Fava, Maurizio},
+year = {2006},
+month = {11},
+pages = {1905-17},
+title = {Acute and Longer-Term Outcomes in Depressed Outpatients Requiring One or Several Treatment Steps: A STAR*D Report},
+volume = {163},
+journal = {The American journal of psychiatry},
+doi = {10.1176/appi.ajp.163.11.1905}
+}
+
+@article{Corey2002,
+author = {Corey-Lisle, Patricia K. and Birnbaum, Howard G. and Greenberg, Paul E. and Marynchenko, Maryna B. and Claxton, Ami J.},
+year = {2002},
+month = {08},
+pages = {717-726},
+title = {Identification of a claims data "signature" and economic consequences for treatment-resistant depression},
+volume = {8},
+journal = {J Clin Psychiatry},
+doi = {10.4088/jcp.v63n0810}
+}
+
+@article{VANCAPPEL2021,
+title = {Cognitive impairments in treatment-resistant depression: Results from the French cohort of outpatients (FACE-DR)},
+journal = {Journal of Affective Disorders Reports},
+volume = {6},
+pages = {100272},
+year = {2021},
+issn = {2666-9153},
+doi = {https://doi.org/10.1016/j.jadr.2021.100272},
+url = {https://www.sciencedirect.com/science/article/pii/S2666915321001943},
+author = {A Vancappel and Y Dansou and O Godin and E Haffen and A Yrondi and F Stéphan and R Richieri and F Molière and M Horn and E Allauze and JB Genty and A Bouvard and JM Dorey and M Meyrel and V Camus and G Fond and B Péran and M Walter and L Anguill and C {Scotto d'Apollonia} and AS Nguon and B Fredembach and J Holtzmann and E Vilà and J Petrucci and  Rey and B Etain and M Carminati and P Courtet and G Vaiva and PM Llorca and M Leboyer and B Aouizerate and D Bennabi and W El-Hage},
+keywords = {Treatment resistant depression, Cognitive impairments, Neuropsychology, Memory, Executive function, Processing speed},
+}
+
+@article{GREGORY2020,
+title = {Predictors of cognitive impairment in treatment-resistant depression},
+journal = {Journal of Affective Disorders},
+volume = {274},
+pages = {593-601},
+year = {2020},
+issn = {0165-0327},
+doi = {https://doi.org/10.1016/j.jad.2020.05.101},
+url = {https://www.sciencedirect.com/science/article/pii/S0165032720303931},
+author = {Elizabeth Gregory and Ivan J. Torres and Ruiyang Ge and Daniel M. Blumberger and Jonathan H. Downar and Zafiris J. Daskalakis and Raymond W. Lam and Fidel Vila-Rodriguez},
+}
+
+@article{Lewis2000,
+    author = {Judd, Lewis L. and Akiskal, Hagop S. and Zeller, Pamela J. and Paulus, Martin and Leon, Andrew C. and Maser, Jack D. and Endicott, Jean and Coryell, William and Kunovac, Jelena L. and Mueller, Timothy I. and Rice, John P. and Keller, Martin B.},
+    title = "{Psychosocial Disability During the Long-term Course of Unipolar Major Depressive Disorder}",
+    journal = {Archives of General Psychiatry},
+    volume = {57},
+    number = {4},
+    pages = {375-380},
+    year = {2000},
+    month = {04},
+    issn = {0003-990X},
+    doi = {10.1001/archpsyc.57.4.375},
+    url = {https://doi.org/10.1001/archpsyc.57.4.375},
+    eprint = {https://jamanetwork.com/journals/jamapsychiatry/articlepdf/205654/yoa7365.pdf},
+}
+
+@article{Hirschfeld2000,
+title = "Social functioning in depression: A review",
+author = "Hirschfeld, {Robert M.A.} and Montgomery, {Stuart A.} and Keller, {Martin B.} and Siegfried Kasper and Schatzberg, {Alan F.} and M{\"o}ller, {Hans J{\"u}rgen} and David Healy and David Baldwin and Mats Humble and Marcio Versiani and Roger Montenegro and Marc Bourgeois",
+note = "Copyright: Copyright 2017 Elsevier B.V., All rights reserved.",
+year = "2000",
+month = apr,
+doi = "10.4088/JCP.v61n0405",
+language = "English (US)",
+volume = "61",
+pages = "268--275",
+journal = "Diseases of the Nervous System",
+issn = "0160-6689",
+publisher = "Physicians Postgraduate Press Inc.",
+number = "4",
+}
+
+@article{Thase1994,
+author = {Michael E Thase  and Robert H Howland },
+title = {Refractory Depression: Relevance of Psychosocial Factors and Therapies},
+journal = {Psychiatric Annals},
+volume = {24},
+number = {5},
+pages = {232-240},
+year = {1994},
+doi = {10.3928/0048-5713-19940501-09},
+URL = {https://journals.healio.com/doi/abs/10.3928/0048-5713-19940501-09},
+eprint = {https://journals.healio.com/doi/pdf/10.3928/0048-5713-19940501-09},
+}
+
+@article{RATHOD2022,
+title = {Health-related quality of life burden associated with treatment-resistant depression in UK patients: Quantitative results from a mixed-methods non-interventional study},
+journal = {Journal of Affective Disorders},
+volume = {300},
+pages = {551-562},
+year = {2022},
+issn = {0165-0327},
+doi = {https://doi.org/10.1016/j.jad.2021.12.090},
+url = {https://www.sciencedirect.com/science/article/pii/S0165032721014087},
+author = {Shanaya Rathod and Tom Denee and Joe Eva and Cicely Kerr and Nicholas Jacobsen and Mitesh Desai and Laura Baldock and Allan H. Young},
+}
+
+@article{LEX2019,
+title = {Quality of life across domains among individuals with treatment-resistant depression},
+journal = {Journal of Affective Disorders},
+volume = {243},
+pages = {401-407},
+year = {2019},
+issn = {0165-0327},
+doi = {https://doi.org/10.1016/j.jad.2018.09.062},
+url = {https://www.sciencedirect.com/science/article/pii/S0165032717327088},
+author = {Heidemarie Lex and Yarden Ginsburg and Adam F. Sitzmann and Clara Grayhack and Daniel F. Maixner and Brian J. Mickey},
+}
+
+@article {Lawrence2013,
+	author = {Lawrence, David and Hancock, Kirsten J and Kisely, Stephen},
+	title = {The gap in life expectancy from preventable physical illness in psychiatric patients in Western Australia: retrospective analysis of population based registers},
+	volume = {346},
+	elocation-id = {f2539},
+	year = {2013},
+	doi = {10.1136/bmj.f2539},
+	publisher = {BMJ Publishing Group Ltd},
+	URL = {https://www.bmj.com/content/346/bmj.f2539},
+	eprint = {https://www.bmj.com/content/346/bmj.f2539.full.pdf},
+	journal = {BMJ}
+}
+
+@article{Melle2004,
+title = "Prognostic association of depression following myocardial infarction with mortality and cardiovascular events: A meta-analysis",
+author = "{van Melle}, J.P. and {de Jonge}, P. and T.A. Spijkerman and J.G. Tijssen and J. Ormel and {van Veldhuisen}, D.J. and {van den Brink}, R.H. and {van den Berg}, M.P.",
+year = "2004",
+language = "English",
+volume = "66",
+pages = "814--822",
+journal = "Psychosomatic Medicine",
+issn = "0033-3174",
+publisher = "Lippincott Williams and Wilkins",
+number = "6",
+}
+
+@article{Souery2007,
+author = {Souery, Daniel and Oswald, Pierre and Massat, Isabelle and Bailer, Ursula and Bollen, Joseph and Demyttenaere, Koen and Kasper, Siegfried and Lecrubier, Yves and Montgomery, Stuart and Serretti, Alessandro and Zohar, Joseph and Mendlewicz, Julien},
+year = {2007},
+month = {07},
+pages = {1062-70},
+title = {Clinical Factors Associated With Treatment Resistance in Major Depressive Disorder},
+volume = {68},
+journal = {The Journal of clinical psychiatry},
+doi = {10.4088/JCP.v68n0713}
+}
+
+@article{Tabel2018,
+author = {Tabeleão, V and Tomasi, E and  de Avila Quevedo, L.},
+year = {2018},
+month = {02},
+pages = {211-217},
+title = {A Randomized, Controlled Trial of the Effectiveness of a Psychoeducational Intervention on Family Caregivers of Patients with Mental Disorders},
+volume = {54},
+journal = {Community Ment Health J},
+doi = {10.1007/s10597-017-0126-7}
+}
+
+@article{VANWIJNGAARDEN2004,
+title = {Family caregiving in depression: impact on caregivers' daily life, distress, and help seeking},
+journal = {Journal of Affective Disorders},
+volume = {81},
+number = {3},
+pages = {211-222},
+year = {2004},
+issn = {0165-0327},
+doi = {https://doi.org/10.1016/S0165-0327(03)00168-X},
+url = {https://www.sciencedirect.com/science/article/pii/S016503270300168X},
+author = {Bob {van Wijngaarden} and Aart H. Schene and Maarten W.J. Koeter},
+keywords = {Caregiving, Depression, Patient},
+}
+
+@article{Jain2022,
+author = {Jain, Rakesh and Higa, Sara and Keyloun, Katelyn  and Park, Julie  and Bonafede, Machaon and Tung, Amy and Gillard, Patrick and Cutler, Andrew J.},
+year = {2022},
+title = {Treatment Patterns During Major Depressive Episodes Among Patients with Major Depressive Disorder: A Retrospective Database Analysis},
+journal = {Drugs - Real World Outcomes},
+doi = {https://doi.org/10.1007/s40801-022-00316-4}}
+}
+
+@article {Culpepper2015,
+	Title = {Major Depressive Disorder: Understanding the Significance of Residual Symptoms and Balancing Efficacy with Tolerability},
+	Author = {Culpepper, Larry and Muskin, Philip R and Stahl, Stephen M},
+	DOI = {10.1016/j.amjmed.2015.07.001},
+	Number = {9 Suppl},
+	Volume = {128},
+	Month = {September},
+	Year = {2015},
+	Journal = {The American journal of medicine},
+	ISSN = {0002-9343},
+	Pages = {S1‚ÄîS15},
+}
+ 
+@article{Ferguson2001,
+  title={SSRI Antidepressant Medications: Adverse Effects and Tolerability.},
+  author={James M. Ferguson},
+  journal={Primary care companion to the Journal of clinical psychiatry},
+  year={2001},
+  volume={3 1},
+  pages={ 22-27 }
+}
+
+@article{Moret2009,
+author = {C. Moret and M. Isaac and M. Briley},
+title ={Review: Problems associated with long-term treatment with selective serotonin reuptake inhibitors},
+journal = {Journal of Psychopharmacology},
+volume = {23},
+number = {8},
+pages = {967-974},
+year = {2009},
+doi = {10.1177/0269881108093582},
+note ={PMID: 18635702},
+URL = {https://doi.org/10.1177/0269881108093582},
+eprint = {https://doi.org/10.1177/0269881108093582}
+}
+
+
+@article {Reidc2010,
+	author = {Reid, Steven and Barbui, Corrado},
+	title = {Long term treatment of depression with selective serotonin reuptake inhibitors and newer antidepressants},
+	volume = {340},
+	elocation-id = {c1468},
+	year = {2010},
+	doi = {10.1136/bmj.c1468},
+	publisher = {BMJ Publishing Group Ltd},
+	issn = {0959-8138},
+	URL = {https://www.bmj.com/content/340/bmj.c1468},
+	eprint = {https://www.bmj.com/content},
+	journal = {BMJ}
+}
+
+@article{Andersohn2009,
+author = {Andersohn, Frank and Schade, Ren\'{e} and Suissa, Samy and Garbe, Edeltraut},
+title = {Long-Term Use of Antidepressants for Depressive Disorders and the Risk of Diabetes Mellitus},
+journal = {American Journal of Psychiatry},
+volume = {166},
+number = {5},
+pages = {591-598},
+year = {2009},
+doi = {10.1176/appi.ajp.2008.08071065},
+    note ={PMID: 19339356},
+URL = {https://doi.org/10.1176/appi.ajp.2008.08071065},
+eprint = {  https://doi.org/10.1176/appi.ajp.2008.08071065  } ,
+}
+
+@article{JUDD199897,
+title = {Major depressive disorder: A prospective study of residual subthreshold depressive symptoms as predictor of rapid relapse},
+journal = {Journal of Affective Disorders},
+volume = {50},
+number = {2},
+pages = {97-108},
+year = {1998},
+issn = {0165-0327},
+doi = {https://doi.org/10.1016/S0165-0327(98)00138-4},
+url = {https://www.sciencedirect.com/science/article/pii/S0165032798001384},
+author = {Lewis L Judd and Hagop S Akiskal and Jack D Maser and Pamela J Zeller and Jean Endicott and William Coryell and Martin P Paulus and Jelena L Kunovac and Andrew C Leon and Timothy I Mueller and John A Rice and Martin B Keller},
+keywords = {MDE recovery, Residual symptoms, Rapid episode relapse},
+}
+
+@techreport{compass_pathways_safety_2022,
+	type = {Clinical trial registration},
+	title = {The {Safety} and {Efficacy} of {Psilocybin} in {Participants} {With} {Treatment} {Resistant} {Depression}},
+	url = {https://clinicaltrials.gov/ct2/show/NCT03775200},
+	abstract = {The Safety and Efficacy of Psilocybin in Participants with Treatment Resistant Depression},
+	number = {NCT03775200},
+	urldate = {2022-07-28},
+	institution = {clinicaltrials.gov},
+	author = {{COMPASS Pathways}},
+	month = jan,
+	year = {2022},
+	note = {submitted: December 11, 2018},
+}
+
+
+@article {Watts2017,
+	author = {Watts, Rosalind and Day, Camilla and Krzanowski, Jacob and Nutt, David and Carhart-Harris, Robin},
+	title = {Patients’ accounts of increased ‘Connectedness’ and ‘Acceptance’ after psilocybin for treatment-resistant depression},
+	volume = {57},
+	pages = {520--564},
+	year = {2017},
+	doi = {10.1177/0022167817709585},
+	publisher = {Sage Journals},
+	URL = {https://www.bmj.com/content/340/bmj.c1468},
+	journal = {J Humanist Psychol}
+}
+
+@Article{Peill2022,
+   Author="Peill, J. M.  and Trinci, K. E.  and Kettner, H.  and Mertens, L. J.  and Roseman, L.  and Timmermann, C.  and Rosas, F. E.  and Lyons, T.  and Carhart-Harris, R. L. ",
+   Title="{{V}alidation of the {P}sychological {I}nsight {S}cale: {A} new scale to assess psychological insight following a psychedelic experience}",
+   Journal="J Psychopharmacol",
+   Year="2022",
+   Volume="36",
+   Number="1",
+   Pages="31--45",
+   Month="01",
+}
+
+@Article{Haijen2018,
+   Author="Haijen, E. C. H. M.  and Kaelen, M.  and Roseman, L.  and Timmermann, C.  and Kettner, H.  and Russ, S.  and Nutt, D.  and Daws, R. E.  and Hampshire, A. D. G.  and Lorenz, R.  and Carhart-Harris, R. L. ",
+   Title="{{P}redicting {R}esponses to {P}sychedelics: {A} {P}rospective {S}tudy}",
+   Journal="Front Pharmacol",
+   Year="2018",
+   Volume="9",
+   Pages="897",
+}
+
+@article{murphy2022therapeutic,
+  title={Therapeutic alliance and rapport modulate responses to psilocybin assisted therapy for depression},
+  author={Murphy, Roberta and Kettner, Hannes and Zeifman, Rick and Giribaldi, Bruna and Kartner, Laura and Martell, Jonny and Read, Tim and Murphy-Beiner, Ashleigh and Baker-Jones, Michelle and Nutt, David and others},
+  journal={Frontiers in Pharmacology},
+  volume={12},
+  pages={788155},
+  year={2022},
+  publisher={Frontiers}
+}
