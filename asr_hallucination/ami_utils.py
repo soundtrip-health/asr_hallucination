@@ -207,17 +207,19 @@ def load_manual_transcript_words(session_id, basedir):
     return df
 
 
-def load_ami_transcript(session_id, transcriber, snr, basedir):
-    """Load AMI transcript for a specific session, transcriber, and SNR.
+def load_ami_transcript(session_id, transcriber, snr, basedir, noise=None, outdir=None):
+    """Load AMI transcript for a specific session, transcriber, noise, and SNR.
 
     Args:
         session_id: AMI session ID
         transcriber: transcriber name ("hum", "aws", "aai", "wsp", "rev")
-        snr: signal-to-noise ratio
+        snr: signal-to-noise ratio (float("inf") for the original audio)
         basedir: base directory containing AMI corpus
+        noise: noise file stem (e.g. "noise1"); ignored (and "none" is used) when snr is inf
+        outdir: directory with the processed transcripts (default: basedir/out)
 
     Returns:
-        DataFrame with transcript words
+        DataFrame with transcript words, or None if the transcript file doesn't exist
     """
     if transcriber == "hum":
         df = load_manual_transcript_words(session_id, basedir)
@@ -225,10 +227,16 @@ def load_ami_transcript(session_id, transcriber, snr, basedir):
         df["snr"] = float("inf")
         df["dataset"] = "ami"
     else:
-        path = basedir / "out" / session_id / f"xscript_{transcriber}_snr{snr:+03.0f}.json"
+        if snr == float("inf"):
+            noise = "none"
+        elif noise is None:
+            raise ValueError("noise must be specified for finite SNRs.")
+        outdir = Path(basedir) / "out" if outdir is None else Path(outdir)
+        path = outdir / session_id / f"xscript_{transcriber}_{noise}_snr{snr:+03.0f}.json"
         df = load_transcript_words(path, transcriber)
         if df is not None:
             df["session_id"] = session_id
             df["snr"] = snr
+            df["noise"] = noise
             df["dataset"] = "ami"
     return df

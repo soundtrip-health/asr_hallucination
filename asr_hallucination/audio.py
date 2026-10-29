@@ -58,15 +58,19 @@ def load_audio(files, gap_ms=0, fade_ms=0, s3_session=None):
 
 
 def audio_to_numpy(aseg):
-    """Convert a PyDub AudioSegment to a numpy array."""
-    nparray = np.frombuffer(aseg.raw_data, dtype=np.int16)
-    # Normalize the array to float values between -1 and 1
-    # Note that nparray is read-only, so we can't divide inplace with /=
-    if aseg.sample_width == 2:
-        nparray = nparray / 32768.0  # 16-bit audio
-    elif aseg.sample_width == 4:
-        nparray = nparray / 2147483648.0  # 32-bit audio
-    return nparray
+    """Convert a PyDub AudioSegment to a float numpy array with values in [-1, 1).
+
+    Multi-channel audio is returned interleaved (call aseg.set_channels(1) first for mono).
+    """
+    if aseg.sample_width == 3:
+        # numpy has no 24-bit integer type; let pydub convert to 32-bit
+        aseg = aseg.set_sample_width(4)
+    dtypes = {1: np.int8, 2: np.int16, 4: np.int32}
+    if aseg.sample_width not in dtypes:
+        raise ValueError(f"Unsupported sample width: {aseg.sample_width} bytes")
+    nparray = np.frombuffer(aseg.raw_data, dtype=dtypes[aseg.sample_width])
+    # Normalize to float values between -1 and 1. Note that nparray is read-only, so we can't divide inplace.
+    return nparray / float(2 ** (8 * aseg.sample_width - 1))
 
 
 def mix_audio(signal, noise, snr):
@@ -107,8 +111,9 @@ def mix_audio(signal, noise, snr):
     # a*signal + b*noise matches the energy of the input signal.
     a = np.sqrt(1 / (1 + g**2))
     b = np.sqrt(g**2 / (1 + g**2))
-    # mix the signals
-    mix = (a * signal + b * noise) * 32767
+    # mix the signals. Peaks where speech and noise coincide can exceed full scale, so clip
+    # rather than letting the int16 cast wrap around.
+    mix = np.clip((a * signal + b * noise) * 32767, -32768, 32767)
     return AudioSegment(mix.astype(np.int16).tobytes(), frame_rate=16000, sample_width=2, channels=1)
 
 
